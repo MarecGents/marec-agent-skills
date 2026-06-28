@@ -1,0 +1,26 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Developer Tools",
+      "description": "Skills for code assistance, Git workflows, debugging, and engineering productivity.",
+      "skills": []
+    },
+    {
+      "title": "Automation",
+      "description": "Skills for task automation, CI/CD, and workflow orchestration.",
+      "skills": []
+    },
+    {
+      "title": "Data Processing",
+      "description": "Skills for file conversion, data analysis, and document processing.",
+      "skills": []
+    },
+    {
+      "title": "Other",
+      "description": "Skills that do not fit into the above categories.",
+      "skills": []
+    }
+  ]
+}

@@ -5,22 +5,31 @@
     {
       "title": "Developer Tools",
       "description": "Skills for code assistance, Git workflows, debugging, and engineering productivity.",
-      "skills": []
+      "skills": [
+        "default",
+        "github-project-replication"
+      ]
     },
     {
       "title": "Automation",
       "description": "Skills for task automation, CI/CD, and workflow orchestration.",
-      "skills": []
+      "skills": [
+        "douyin-downloader"
+      ]
     },
     {
       "title": "Data Processing",
       "description": "Skills for file conversion, data analysis, and document processing.",
-      "skills": []
+      "skills": [
+        "zh-quotes"
+      ]
     },
     {
       "title": "Other",
       "description": "Skills that do not fit into the above categories.",
-      "skills": []
+      "skills": [
+        "check-reasonix-update"
+      ]
     }
   ]
 }

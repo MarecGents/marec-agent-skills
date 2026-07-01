@@ -29,6 +29,15 @@ npx skills add MarecGents/marec-agent-skills
 - 任务评估矩阵自动判断是否需要启用多 Agent 流程
 - 审查门禁机制确保交付质量
 
+**致谢与声明：**
+
+本 SKILL 中集成的 251 个 Agent 定义文件基于以下开源项目：
+
+- [agency-agents-zh](https://github.com/jnMetaCode/agency-agents-zh) — 中文版 AI 智能体专家团队（266 个角色，19 个部门）
+- [agency-agents](https://github.com/msitarzewski/agency-agents) — 上游英文原版
+
+感谢以上项目的贡献者。本 SKILL 在完整翻译和本土化的基础上，对文件结构进行了重组，并增加了总调度 Agent 和审查 Agent 两个核心角色。
+
 ### default
 
 通用默认工作流技能。当没有更具体的专项技能匹配时，使用此技能作为兜底方案。
@@ -102,6 +111,15 @@ skills/
 Use the [`template/`](./template/SKILL.md) in this repository as a starting point.
 
 For more details, see the [Agent Skills Specification](https://agentskills.io/specification.md).
+
+## 致谢与声明 / Acknowledgements
+
+本项目中的 [agent-orchestra](./skills/agent-orchestra/SKILL.md) SKILL 集成的 251 个 Agent 定义文件基于以下开源项目：
+
+- [agency-agents-zh](https://github.com/jnMetaCode/agency-agents-zh) — 中文版 AI 智能体专家团队（266 个角色，19 个部门）
+- [agency-agents](https://github.com/msitarzewski/agency-agents) — 上游英文原版
+
+感谢以上项目的贡献者。本 SKILL 在完整翻译和本土化的基础上，对文件结构进行了重组，并增加了总调度 Agent 和审查 Agent 两个核心角色。
 
 ## License
 

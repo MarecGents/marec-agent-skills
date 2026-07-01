@@ -6,6 +6,7 @@
       "title": "Developer Tools",
       "description": "Skills for code assistance, Git workflows, debugging, and engineering productivity.",
       "skills": [
+        "agent-orchestra",
         "default",
         "github-project-replication"
       ]

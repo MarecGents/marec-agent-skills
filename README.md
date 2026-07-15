@@ -112,6 +112,29 @@ Use the [`template/`](./template/SKILL.md) in this repository as a starting poin
 
 For more details, see the [Agent Skills Specification](https://agentskills.io/specification.md).
 
+## Sandbox (Skill Development Area)
+
+`sandbox/` 是用于创建、测试和验证新 Skill 的开发沙盒，与正式发布目录 `skills/` 隔离，
+方便在不影响已发布 skill 的前提下进行开发和实验。
+
+```
+sandbox/
+├── dev/              # 存放正在开发中的 Skill（按 skills/ 相同规范结构）
+│   └── my-skill/
+│       ├── SKILL.md
+│       ├── scripts/
+│       └── references/
+└── tests/            # 执行测试验证的环境
+    ├── README.md
+    └── fixtures/     # 可选：测试用数据
+```
+
+### Workflow
+
+1. **开发** — 在 `sandbox/dev/` 下按 Skill 规范结构创建新 skill
+2. **测试** — 在 `sandbox/tests/` 中编写测试脚本并执行验证
+3. **发布** — 测试通过后，将 skill 移至 `skills/` 目录正式上线
+
 ## 致谢与声明 / Acknowledgements
 
 本项目中的 [agent-orchestra](./skills/agent-orchestra/SKILL.md) SKILL 集成的 251 个 Agent 定义文件基于以下开源项目：

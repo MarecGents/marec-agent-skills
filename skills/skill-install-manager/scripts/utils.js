@@ -66,14 +66,14 @@ function runCommand(cmd, timeout = 120000) {
 // ============================================================
 // 带重试机制的 git ls-remote 查询
 // ============================================================
-function gitLsRemoteWithRetry(owner, repo, retries = 0) {
+function gitLsRemoteWithRetry(owner, repo, retries = 1) {
   const cmd = `git ls-remote https://github.com/${owner}/${repo}.git HEAD`;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const output = execSync(cmd, {
         encoding: 'utf-8',
-        timeout: 12000,
+        timeout: 10000,
         maxBuffer: 1024 * 128
       });
       const sha = output.trim().split(/\s+/)[0];

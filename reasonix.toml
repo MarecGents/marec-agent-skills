@@ -9,7 +9,7 @@ default_model = "deepseek-flash"
 
 [agent]
 cold_resume_prune = true
-plan_mode_read_only_commands = ["npx skills --help", "npx skills ls"]
+plan_mode_read_only_commands = ["npx skills --help", "npx skills ls", "git mv"]
 
 [tools]
 bash_timeout_seconds = 120

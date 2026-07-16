@@ -166,6 +166,27 @@ function fallbackVersionCheck(originUrl) {
 function main() {
   const opts = parseArgs();
 
+  // --help 处理
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log(`
+compare-skills.js — 技能列表对比工具
+
+用法:
+  node compare-skills.js --list <path-to-list-file>
+  node compare-skills.js --list <path-to-list-file> --lock <path-to-skill-lock.json>
+  node compare-skills.js --help
+
+参数:
+  --list <path>   指向技能列表文件的路径（必需）
+  --lock <path>   指向 .skill-lock.json 的路径（可选，默认自动查找）
+  --help, -h      显示此帮助信息
+
+输出:
+  输出 JSON 到 stdout，包含 origins / installed / missing / skippable / outdated / upToDate / unknown
+`);
+    return;
+  }
+
   if (!opts.listFile) {
     console.error('[ERROR] 请指定 --list <path> 参数指向技能列表文件');
     process.exit(1);

@@ -81,6 +81,26 @@ npx skills add MarecGents/marec-agent-skills
 - "检查更新"、"查看更新日志"、"版本对比"
 - "Reasonix 更新"、"DeepSeek-Reasonix"
 
+### skill-install-manager
+
+技能安装管理器 — 自动读取技能列表文件，与当前全局已安装技能进行对比，
+找出未安装或存在更新的技能，并执行一键安装/更新。
+支持三级回退：HTTPS → SSH → MCP/GitHub API 直接抓取。
+
+**Use when:**
+- "检查并安装缺少的技能" / "看看哪些技能还没装"
+- "同步技能列表" / "skill sync" / "更新所有技能"
+- "技能管理" / "批量安装 skills" / "一键安装"
+- 任何与技能安装、同步、更新、管理相关的需求
+
+**Features:**
+- 双模式执行：agent 直行（主路径，超时可控+进度可见） + JS 脚本辅助
+- 三级安装回退：HTTPS 30s → SSH 30s → GitHub API 手动下载
+- 内置技能列表文件，开机即用，无需外部输入
+- 版本对比：`git ls-remote` + `web_fetch` GitHub API 双通道
+- 锁文件缺失时自动检测远程版本作为参考
+- 自动过滤 `_shared` 等不可安装条目
+
 ### zh-quotes
 
 在 Word 文档(.docx)中将英文直引号替换为中文全角弯引号，成对交替，保留原格式。

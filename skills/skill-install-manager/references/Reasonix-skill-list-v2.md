@@ -88,7 +88,13 @@ Skill Name and install command
 9. nature-response: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-response
 10. nature-reviewer: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-reviewer
 11. nature-writing: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-writing
-12. openclaw-medical-skills: npx skills add https://github.com/yuan1z0825/nature-skills --skill openclaw-medical-skills
+12. nature-downloader: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-downloader
+13. nature-experiment-log: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-experiment-log
+14. nature-literature-pipeline: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-literature-pipeline
+15. nature-ref-verifier: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-ref-verifier
+16. nature-shared: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-shared
+17. nature-statistics: npx skills add https://github.com/yuan1z0825/nature-skills --skill nature-statistics
+18. researchwrite: npx skills add https://github.com/yuan1z0825/nature-skills --skill researchwrite
 
 ## Origin URL: https://github.com/vercel-labs/skills
 

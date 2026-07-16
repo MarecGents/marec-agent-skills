@@ -21,6 +21,7 @@ Skill Name and install command
 Skill Name and install command
 
 1. brainstorming: npx skills add https://github.com/obra/superpowers --skill brainstorming
+2. systematic-debugging: npx skills add https://github.com/obra/superpowers --skill systematic-debugging
 
 ## Origin URL： https://github.com/anthropics/skills
 

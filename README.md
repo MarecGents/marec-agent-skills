@@ -85,7 +85,12 @@ npx skills add MarecGents/marec-agent-skills
 
 技能安装管理器 — 自动读取技能列表文件，与当前全局已安装技能进行对比，
 找出未安装或存在更新的技能，并执行一键安装/更新。
-支持三级回退：HTTPS → SSH → MCP/GitHub API 直接抓取。
+
+**核心改进 v2：**
+- ⏫ **自更新优先**：运行技能时先更新自身，确保技能列表文件为最新
+- 🔄 **`npx skills update` 优先**：对已安装技能优先使用 `npx skills update`（更快、不重复克隆），失败再降级到 `npx skills add`
+- 📋 **新旧列表对比**：自更新后对比更新前后的技能列表，自动标记 🆕新增/🗑️移除/➡️延续三类技能
+- 🧩 **三级安装回退**：`npx skills update` → `npx skills add` HTTPS → SSH → GitHub API 手动下载
 
 **Use when:**
 - "检查并安装缺少的技能" / "看看哪些技能还没装"
@@ -94,12 +99,15 @@ npx skills add MarecGents/marec-agent-skills
 - 任何与技能安装、同步、更新、管理相关的需求
 
 **Features:**
-- 双模式执行：agent 直行（主路径，超时可控+进度可见） + JS 脚本辅助
-- 三级安装回退：HTTPS 30s → SSH 30s → GitHub API 手动下载
-- 内置技能列表文件，开机即用，无需外部输入
+- **自更新流程**：⓪自更新 → ①读新列表 → ②新旧对比 → ③解析 → ④获取状态 → ⑤对比 → ⑥安装/更新 → ⑦报告
+- **智能更新策略**：
+  - 🆕 新增技能 → `npx skills add` 安装（最先安装）
+  - ❌ 缺失技能 → `npx skills add` 安装（其次安装）
+  - 🔄 已安装可更新 → `npx skills update` 优先（15s 超时），失败降级到 add
+- 双模式执行：agent 直行（主路径，超时可控+进度可见）+ JS 脚本辅助
+- 内置技能列表文件 `references/Reasonix-skill-list-v2.md`，开机即用
 - 版本对比：`git ls-remote` + `web_fetch` GitHub API 双通道
-- 锁文件缺失时自动检测远程版本作为参考
-- 自动过滤 `_shared` 等不可安装条目
+- 支持 `-a reasonix`（小写）避免大小写错误
 
 ### zh-quotes
 

@@ -14,6 +14,7 @@ Skill Name and install command
 4. github-project-replication: npx skills add https://github.com/MarecGents/marec-agent-skills --skill github-project-replication
 5. zh-quotes: npx skills add https://github.com/MarecGents/marec-agent-skills --skill zh-quotes
 6. agent-orchestra: npx skills add https://github.com/MarecGents/marec-agent-skills --skill agent-orchestra
+7. skill-install-manager: npx skills add https://github.com/MarecGents/marec-agent-skills --skill skill-install-manager
 
 ## Origin URL: https://github.com/obra/superpowers
 

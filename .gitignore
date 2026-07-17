@@ -54,3 +54,4 @@ temp/
 # Project specific
 .reasonix/
 .planning/
+reasonix.toml

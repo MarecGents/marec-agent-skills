@@ -47,6 +47,20 @@ npx skills add MarecGents/marec-agent-skills
 - "帮我做个..."、"写一个..."、"实现..."、"分析..." 等通用任务
 - 没有明确 skill 匹配的任意任务
 
+### skill-standard-harness
+
+标准规范约束中心。统一管理操作层面的公共规范（GitHub 仓库访问规范、Markdown 输出规范等），供其他技能引用，避免各技能重复维护相同规范内容。
+
+**Use when:**
+- 其他技能在执行过程中需引用统一的公共操作规范
+- 任务涉及 GitHub 仓库访问、文档输出、文件化任务追踪等需要遵循标准规范的场景
+- default、github-project-replication 等技能将其列为必选前置依赖
+
+**Features:**
+- 规范目录结构：SKILL.md 维护索引，规范详情放在 `references/` 下独立文件
+- 当前包含：GitHub 仓库访问规范、Markdown 输出规范
+- 可扩展：通过新增 `references/` 文件即可添加新的规范约束
+
 ### douyin-downloader
 
 下载抖音(Douyin/TikTok中国版)无水印原视频 — 从分享链接直接提取 4K 视频直链，无需登录、无需 cookies、无需第三方 API。

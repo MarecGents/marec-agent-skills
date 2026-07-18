@@ -15,6 +15,7 @@ Skill Name and install command
 5. zh-quotes: npx skills add https://github.com/MarecGents/marec-agent-skills --skill zh-quotes
 6. agent-orchestra: npx skills add https://github.com/MarecGents/marec-agent-skills --skill agent-orchestra
 7. skill-install-manager: npx skills add https://github.com/MarecGents/marec-agent-skills --skill skill-install-manager
+8. skill-standard-harness: npx skills add https://github.com/MarecGents/marec-agent-skills --skill skill-standard-harness
 
 ## Origin URL: https://github.com/obra/superpowers
 

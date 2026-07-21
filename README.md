@@ -28,6 +28,7 @@ npx skills add MarecGents/marec-agent-skills
 - 三层架构：总调度 → 专业 Agent → 审查官
 - 任务评估矩阵自动判断是否需要启用多 Agent 流程
 - 审查门禁机制确保交付质量
+- 兼容平台：Claude Code、Codex CLI、Cursor、Windsurf、GitHub Copilot、OpenClaw、Reasonix、OpenCode
 
 **致谢与声明：**
 
@@ -86,6 +87,7 @@ npx skills add MarecGents/marec-agent-skills
 **Features:**
 - 六阶段系统化工作流（项目理解→环境配置→代码搭建→运行验证→迭代修复→收尾归档）
 - 自动调用 brainstorming 和 planning-with-files 进行辅助分析
+- 需要依赖：brainstorming、planning-with-files 和 skill-standard-harness 三个技能
 
 ### check-reasonix-update
 
@@ -125,7 +127,7 @@ npx skills add MarecGents/marec-agent-skills
 
 ### zh-quotes
 
-在 Word 文档(.docx)中将英文直引号替换为中文全角弯引号，成对交替，保留原格式。
+在 Word 文档(.docx)中将英文直引号替换为中文全角弯引号，成对交替，保留原格式。适用于学术论文、报告、公文等中文文档的标点规范化。该技能是 docx 技能的子技能，专精于引号格式修复，不用于创建或编辑其他文档内容。
 
 **Use when:**
 - 处理中文标点符号、整理中文排版

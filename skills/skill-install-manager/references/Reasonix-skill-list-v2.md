@@ -108,8 +108,9 @@ Skill Name and install command
 
 Skill Name and install command
 
-0. ieee-mg-share: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-share
-1. ieee-mg-polishing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-polishing
-2. ieee-mg-reviewer: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-reviewer
-3. ieee-mg-writing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-writing 
+1. ieee-mg-share: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-share
+2. ieee-mg-polishing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-polishing
+3. ieee-mg-reviewer: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-reviewer
+4. ieee-mg-writing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-writing 
+
 

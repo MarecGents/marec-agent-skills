@@ -104,15 +104,11 @@ Skill Name and install command
 
 1. find-skills: npx skills add https://github.com/vercel-labs/skills --skill find-skills
 
-## Origin URL: 
+## Origin URL: https://github.com/MarecGents/ieee-mg-skills
 
 Skill Name and install command
 
-1. xxxx: 
-
-## Origin URL: 
-
-Skill Name and install command
-
-1. xxxx: 
-
+0. ieee-mg-share
+1. ieee-mg-polishing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-polishing
+2. ieee-mg-reviewer: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-reviewer
+3. ieee-mg-writing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-writing 

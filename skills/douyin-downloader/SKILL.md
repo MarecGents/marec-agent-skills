@@ -1,8 +1,13 @@
 ---
 name: douyin-downloader
-description: 下载抖音(Douyin/TikTok中国版)无水印原视频 — 从分享链接直接提取4K视频直链，无需登录、无需cookies、无需第三方API。当用户提到"抖音视频下载"、"抖音链接"、"抖音去水印"、"douyin download"、"保存抖音视频"等任何与抖音视频下载相关需求时，务必使用本技能，即使只是问"能不能下载某个抖音视频"。
+description: 下载抖音(Douyin/TikTok中国版)无水印原视频 — 从分享链接直接提取原画质（最高 4K）视频直链，无需登录、无需cookies、无需第三方API。当用户提到"抖音视频下载"、"抖音链接"、"抖音去水印"、"douyin download"、"保存抖音视频"等任何与抖音视频下载相关需求时，务必使用本技能，即使只是问"能不能下载某个抖音视频"。
 user-invocable: true
-allowed-tools: "Bash(git clone:*), Bash(pip install:*), Bash(python:*), Read, Write"
+allowed-tools: "Bash(pip install requests:*), Bash(python:*), Read, Write"
+license: MIT
+compatibility: 需要 Python 3 与 requests 库（pip install requests）
+metadata:
+  author: user
+  version: "1.1"
 ---
 
 # 抖音视频下载
@@ -40,12 +45,12 @@ python scripts/douyin_dl.py "https://v.douyin.com/dl1KJ_7jHuM/" -o 我的视频.
 2. **获取信息**：用移动端 UA 请求 `iesdouyin.com/share/video/{id}/`
 3. **提取数据**：从 HTML 中提取 `window._ROUTER_DATA` JSON（花括号配对解析）
 4. **获取直链**：从 `loaderData → video_(id)/page → videoInfoRes → item_list[0] → video → play_addr → url_list` 获取视频直链
-5. **下载**：以 4K 原画质下载无水印视频，保存为 `douyin_{video_id}.mp4`
+5. **下载**：以平台返回的最高原画质下载无水印视频，保存为 `douyin_{video_id}.mp4`
 
 ## 输出说明
 
-- **格式**: MP4，4K 原画质，无水印
-- **大小**: 4K 视频通常 200-500 MB
+- **格式**: MP4，原画质（最高 4K，取决于平台返回），无水印
+- **大小**: 原画质视频通常 200-500 MB
 - **文件位置**: 当前工作目录或 `-o` 指定路径
 
 ## 如果脚本失效（调试指南）
@@ -61,4 +66,4 @@ python scripts/douyin_dl.py "https://v.douyin.com/dl1KJ_7jHuM/" -o 我的视频.
 
 - 仅支持公开视频（私密/已删除的视频无法下载）
 - 抖音 API 可能更新导致数据结构变化，届时需适配 `_ROUTER_DATA` 路径
-- 如需小文件，可修改脚本中 `get_download_url` 的 `ratio` 参数选择较低分辨率
+- 如需小文件，可在脚本 `get_download_url` 中优先从 `url_list` 选取较低分辨率的地址（若平台返回），或后续版本增加清晰度参数

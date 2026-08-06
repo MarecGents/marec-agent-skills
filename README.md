@@ -12,6 +12,8 @@ npx skills add MarecGents/marec-agent-skills
 
 ## Available Skills
 
+> **说明**：以下各技能描述为概览，最新、最准确的描述与使用方式以各技能目录下的 `SKILL.md` 为准。
+
 ### agent-orchestra
 
 多智能体协作 SKILL — 拥有 251 个专业 Agent（覆盖 19 个部门）的完整多 Agent 协作系统。
@@ -44,9 +46,17 @@ npx skills add MarecGents/marec-agent-skills
 通用默认工作流技能。当没有更具体的专项技能匹配时，使用此技能作为兜底方案。
 提供标准化的三阶段工作流：Brainstorming 前期构思 → Planning with Files 任务追踪 → 收尾归档。
 
+**核心特性（v1.1+）：**
+- **技能匹配规划**：规划阶段检索可用技能，为每个子任务匹配最合适的技能，并在最终计划中显式列出「子任务 → 技能」映射
+- **并行子代理执行**：任务含多个互不相关的子任务时，自动开启并行子代理执行而非串行，提高效率
+- 三阶段工作流：Brainstorming（含技能匹配与并行策略决策）→ Planning with Files → 收尾归档
+
 **Use when:**
 - "帮我做个..."、"写一个..."、"实现..."、"分析..." 等通用任务
 - 没有明确 skill 匹配的任意任务
+- 多子任务混合（部分可并行、部分需专项技能）的复合任务
+
+**Dependencies:** brainstorming（obra/superpowers）、planning-with-files-zh（othmanadi/planning-with-files）、skill-standard-harness（本仓库）
 
 ### skill-standard-harness
 
@@ -64,7 +74,7 @@ npx skills add MarecGents/marec-agent-skills
 
 ### douyin-downloader
 
-下载抖音(Douyin/TikTok中国版)无水印原视频 — 从分享链接直接提取 4K 视频直链，无需登录、无需 cookies、无需第三方 API。
+下载抖音(Douyin/TikTok中国版)无水印原视频 — 从分享链接直接提取原画质（最高 4K）视频直链，无需登录、无需 cookies、无需第三方 API。
 
 **Use when:**
 - "下载这个抖音视频"、"抖音链接去水印"、"保存抖音视频"
@@ -72,7 +82,7 @@ npx skills add MarecGents/marec-agent-skills
 
 **Features:**
 - 支持短链接 `v.douyin.com`、网页版、国际版链接
-- 4K 原画质无水印下载
+- 原画质（最高 4K）无水印下载
 - 无需登录/cookies/第三方 API
 - 附带 Python 脚本 `scripts/douyin_dl.py`
 
@@ -86,8 +96,8 @@ npx skills add MarecGents/marec-agent-skills
 
 **Features:**
 - 六阶段系统化工作流（项目理解→环境配置→代码搭建→运行验证→迭代修复→收尾归档）
-- 自动调用 brainstorming 和 planning-with-files 进行辅助分析
-- 需要依赖：brainstorming、planning-with-files 和 skill-standard-harness 三个技能
+- 自动调用 brainstorming 和 planning-with-files-zh 进行辅助分析
+- 需要依赖：brainstorming、planning-with-files-zh 和 skill-standard-harness 三个技能
 
 ### check-reasonix-update
 

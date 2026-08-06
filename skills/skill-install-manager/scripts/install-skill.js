@@ -31,7 +31,7 @@ const { httpsToSsh, extractGitHubInfo, runCommand } = require('./utils');
 function parseArgs() {
   const args = process.argv.slice(2);
   const opts = {
-    agents: ['Reasonix', 'Claude Code', 'OpenCode']
+    agents: ['reasonix', 'Claude Code', 'OpenCode']
   };
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--name' && i + 1 < args.length) {
@@ -111,7 +111,7 @@ async function installViaGitHubApi(url, skillName, agents, lockFile) {
     const defaultBranch = repoInfo.default_branch || 'main';
 
     // 2. 获取仓库文件树，查找 skill 目录
-    const tree = await githubApiGet(`/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`);
+    const tree = await githubApiGet(`/repos/${owner}/${repo}/git/trees/${encodeURIComponent(defaultBranch)}?recursive=1`);
 
     // 查找 skill 相关的文件路径
     const skillFiles = tree.tree.filter(item => {
@@ -172,21 +172,31 @@ async function installViaGitHubApi(url, skillName, agents, lockFile) {
           lockData.skills[skillName] = {};
         }
 
-        const latestSha = tree.sha;
-        // 找到 SKILL.md 的 blob SHA
-        const skillMdEntry = filesToDownload.find(f => f.path.endsWith('SKILL.md'));
+        // 注意：不能用 tree.sha（树对象 SHA）。compare-skills.js 用 git ls-remote HEAD
+        // 的 commit SHA 做对比基准，两者永远不等 → 手动安装会被永久误报 outdated。
+        // 这里额外获取最新 commit SHA 作为 skillFolderHash。
+        let latestCommitSha = null;
+        try {
+          const commits = await githubApiGet(`/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(defaultBranch)}&per_page=1`);
+          if (Array.isArray(commits) && commits.length > 0 && commits[0].sha) {
+            latestCommitSha = commits[0].sha;
+          }
+        } catch (commitErr) {
+          console.error(`[MANUAL]   ⚠ 获取最新 commit SHA 失败: ${commitErr.message}，回退到 tree.sha`);
+        }
+
         lockData.skills[skillName] = {
           source: `${owner}/${repo}`,
           sourceType: 'github',
           sourceUrl: `https://github.com/${owner}/${repo}.git`,
           skillPath: basePath,
-          skillFolderHash: latestSha,
+          skillFolderHash: latestCommitSha || tree.sha,
           installedAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
 
         fs.writeFileSync(lockFile, JSON.stringify(lockData, null, 2), 'utf-8');
-        console.error(`[MANUAL]   ✓ 锁文件已更新`);
+        console.error(`[MANUAL]   ✓ 锁文件已更新 (skillFolderHash: ${(latestCommitSha || tree.sha).substring(0, 8)})`);
       } catch (lockErr) {
         console.error(`[MANUAL]   ⚠ 锁文件更新失败: ${lockErr.message}`);
       }
@@ -279,13 +289,13 @@ install-skill.js — 技能安装工具（三级回退）
 
 用法:
   node install-skill.js --name <skill-name> --url <origin-url>
-  node install-skill.js --name <skill-name> --url <origin-url> --agents "Reasonix,Claude Code,OpenCode"
+  node install-skill.js --name <skill-name> --url <origin-url> --agents "reasonix,Claude Code,OpenCode"
   node install-skill.js --help
 
 参数:
   --name <name>     技能名称（必需）
   --url <url>       来源仓库 URL（必需）
-  --agents <list>   安装到的 Agent 列表，逗号分隔（可选，默认 Reasonix,Claude Code,OpenCode）
+  --agents <list>   安装到的 Agent 列表，逗号分隔（可选，默认 reasonix,Claude Code,OpenCode）
   --lock <path>     指向 .skill-lock.json 的路径（可选）
   --help, -h        显示此帮助信息
 

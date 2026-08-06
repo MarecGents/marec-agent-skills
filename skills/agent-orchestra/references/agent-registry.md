@@ -7,7 +7,7 @@
 
 ---
 
-## 🏗️ 研发与工程 (85 角色)
+## 🏗️ 研发与工程 (70 角色)
 
 ### 工程部 (41)
 
@@ -83,7 +83,7 @@
 | `testing-tool-evaluator` | 工具评估师 | 专精工具评估和选型，通过功能对比和成本分析帮团队选对工具 |
 | `testing-workflow-optimizer` | 工作流优化师 | 专注流程分析和优化，通过消除瓶颈和引入自动化让团队更高效 |
 
-### 游戏开发部 (20)
+### 游戏开发部 (5)
 
 **通用：**
 
@@ -95,45 +95,6 @@
 | `technical-artist` | 技术美术 | 美术到引擎管线专家，精通 shader、VFX 系统和性能预算 |
 | `game-audio-engineer` | 游戏音频工程师 | 交互音频专家，精通 FMOD/Wwise 集成和自适应音乐系统 |
 
-**Unity：**
-
-| Agent ID | 中文名 | 描述 |
-|----------|--------|------|
-| `unity-architect` | Unity 架构师 | 数据驱动模块化专家，精通 ScriptableObject 和解耦系统 |
-| `unity-editor-tool-developer` | Unity 编辑器工具开发者 | Unity 编辑器自动化专家，精通自定义 EditorWindow |
-| `unity-multiplayer-engineer` | Unity 多人游戏工程师 | 联网游戏专家，精通 Netcode for GameObjects |
-| `unity-shader-graph-artist` | Unity Shader Graph 美术师 | 视觉效果与材质专家，精通 URP/HDRP |
-
-**Unreal Engine：**
-
-| Agent ID | 中文名 | 描述 |
-|----------|--------|------|
-| `unreal-multiplayer-architect` | Unreal 多人游戏架构师 | Unreal Engine 网络专家，精通 Actor 复制 |
-| `unreal-systems-engineer` | Unreal 系统工程师 | 性能与混合架构专家，精通 C++/Blueprint 边界 |
-| `unreal-technical-artist` | Unreal 技术美术 | Unreal Engine 视觉管线专家，精通材质编辑器和 Niagara |
-| `unreal-world-builder` | Unreal 世界构建师 | 开放世界与环境专家，精通 UE5 World Partition |
-
-**Blender：**
-
-| Agent ID | 中文名 | 描述 |
-|----------|--------|------|
-| `blender-addon-engineer` | Blender 插件工程师 | Blender 工具专家，构建 Python 插件和管线自动化 |
-
-**Godot：**
-
-| Agent ID | 中文名 | 描述 |
-|----------|--------|------|
-| `godot-gameplay-scripter` | Godot 游戏脚本开发者 | 精通 GDScript 2.0、C# 集成、节点式架构 |
-| `godot-multiplayer-engineer` | Godot 多人游戏工程师 | Godot 4 网络专家，精通 MultiplayerAPI |
-| `godot-shader-developer` | Godot Shader 开发者 | Godot 4 视觉效果专家，精通着色语言 |
-
-**Roblox Studio：**
-
-| Agent ID | 中文名 | 描述 |
-|----------|--------|------|
-| `roblox-systems-scripter` | Roblox 系统脚本工程师 | Roblox 平台工程专家，精通 Luau 和客户端-服务端安全模型 |
-| `roblox-experience-designer` | Roblox 体验设计师 | Roblox 平台用户体验与变现专家 |
-| `roblox-avatar-creator` | Roblox 虚拟形象创作者 | Roblox UGC 与虚拟形象管线专家 |
 
 ### 空间计算部 (6)
 

@@ -6,10 +6,10 @@ description: >
   触发场景：任何技能需要获取公共操作规范时；用户任务涉及 GitHub 仓库访问、文档输出、文件化任务追踪等需要遵循标准规范的场景。
   default、github-project-replication 等技能在核心原则中声明了本技能为必选前置依赖。
 license: MIT
-compatibility: 需要 curl 和 git 命令行工具。
+compatibility: 需要 git 命令行工具；ZIP 下载/解压需 curl（Linux/macOS）或 curl.exe/Expand-Archive（Windows PowerShell）。
 metadata:
   author: user
-  version: "1.0"
+  version: "1.1"
   model-task: standard-harness
 ---
 
@@ -38,7 +38,7 @@ metadata:
 当用户任务涉及以下场景时，直接触发本技能：
 
 1. **获取公共操作规范** — 其他技能在执行过程中需引用统一规范（如 GitHub 仓库访问、Markdown 输出等）
-2. **复现 GitHub 项目** — 用户给出仓库 URL 要求运行/部署
+2. **复现 GitHub 项目** — 用户给出仓库 URL 要求运行/部署（注意：整体复现流程走 `github-project-replication` 技能，本技能仅提供其中的仓库获取规范）
 3. **下载 GitHub 源码** — 用户需要获取某个仓库的代码文件
 4. **需要规范文档输出** — 任务涉及生成结构化 Markdown 报告或日志文档
 

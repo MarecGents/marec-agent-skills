@@ -3,8 +3,10 @@ name: agent-orchestra
 description: 多智能体协作 SKILL —— 拥有 251 个专业 Agent（覆盖 19 个部门）的完整多 Agent 协作系统。包含总调度 Agent、专业部门 Agent 和审查 Agent。当用户需要完成复杂任务、跨领域协作、多阶段工作流，或涉及前端/后端/设计/营销/安全/金融/GIS/游戏等专业领域时，使用此 SKILL。即使是单领域但高复杂度的任务也应启用。注意：不要因为用户没有明确提到"多智能体"就不使用——任何涉及多种技能或专业知识的任务都是此 SKILL 的适用场景。
 emoji: 🧠
 color: gold
+license: MIT
 compatibility: Claude Code, Codex CLI, Cursor, Windsurf, GitHub Copilot, OpenClaw, Reasonix, Opencode
-version: 1.0.1
+metadata:
+  version: "1.0.1"
 ---
 
 # Agent Orchestra — 多智能体协作系统
@@ -327,7 +329,6 @@ Agent A 向总调度提出协作需求
 ## 7. 最佳实践
 
 ### ✅ 推荐做法
-
 | # | 实践 | 说明 |
 |---|------|------|
 | 1 | **先评估再调度** | 不要默认启用多 Agent，按 §3 的评估矩阵判断 |
@@ -353,6 +354,18 @@ Agent A 向总调度提出协作需求
 > 单 agent 长 session 干着干着就偷懒、丢上下文、看不出自己的 bug。拆开之后每个 agent 上下文干净只干一件事，输出质量稳定很多。
 >
 > 总调度 + 专业 Agent + 审查官 的三层架构，确保每个环节都有明确的责任人和质量检查点。
+
+---
+
+## 8. 测试与评估
+
+本 SKILL 附带一组可复用的评估用例（`evals/evals.json`），用于验证任务评估决策是否准确：
+
+- **用途**：每个用例给定一个任务描述（`prompt`），预期得到决策结论（`expected_decision`：`direct_handle` / `call_dispatcher` / `full_multi_agent`）、评分区间（`expected_score`）与匹配的 Agent 列表（`expected_agents`）
+- **使用方式**：修改 SKILL 或 `总调度.md` 后，用这些用例自测评估逻辑；将实际决策与 `expected_*` 字段对比，不一致即说明评估规则回归
+- **评分基准**：`expected_score` 取值区间对应 §3.2 决策矩阵（4-5 直接处理 / 6-8 调用总调度 / 9-12 完整多 Agent 流程）
+- **当前用例**：跨领域电商（full_multi_agent）、高并发秒杀架构（call_dispatcher）、简单组件（direct_handle）
+- **注意事项**：`expected_agents` 中的 Agent ID 必须存在于 `agents/` 目录（新增/删除 Agent 时同步更新用例）
 
 ---
 

@@ -1,6 +1,11 @@
 ---
 name: zh-quotes
-description: '在 Word 文档(.docx)中将英文直引号替换为中文全角弯引号(""-"") -- 成对交替，保留原格式。当用户需要处理中文标点符号、整理中文排版、将英文直引号转为中文前后引号、修复 docx 文件中的引号格式时使用。适用于学术论文、报告、公文等中文文档的标点规范化。该技能是docx技能的子技能，专精于引号格式修复，不用于创建或编辑其他文档内容。'
+description: 在 Word 文档(.docx)中将英文直引号替换为中文全角弯引号（左引号 U+201C、右引号 U+201D），成对交替，保留原格式。当用户需要处理中文标点符号、整理中文排版、将英文直引号转为中文前后引号、修复 docx 文件中的引号格式时使用。适用于学术论文、报告、公文等中文文档的标点规范化。该技能是 docx 技能的子技能，专精于引号格式修复，不用于创建或编辑其他文档内容。
+license: MIT
+compatibility: 需要 Python 3 与 python-docx（推荐）或 lxml 库。
+metadata:
+  author: user
+  version: "1.1"
 ---
 
 # 中文引号格式化（zh-quotes）
@@ -58,7 +63,7 @@ Get-ChildItem *.docx | ForEach-Object {
 - ✅ 文档正文段落
 - ✅ 页眉（header）和页脚（footer）
 - ✅ 表格内单元格文字
-- ✅ 脚注和尾注（通过 lxml 模式）
+- ✅ 脚注和尾注（python-docx 后端通过 related_parts XML 访问；lxml 后端遍历全部 w:p）
 - ✅ 文本框中的文字
 - ✅ 保留所有字体、字号、加粗、斜体、颜色等格式
 

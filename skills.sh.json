@@ -9,6 +9,7 @@
         "agent-orchestra",
         "default",
         "github-project-replication",
+        "skill-install-manager",
         "skill-standard-harness"
       ]
     },
@@ -16,6 +17,7 @@
       "title": "Automation",
       "description": "Skills for task automation, CI/CD, and workflow orchestration.",
       "skills": [
+        "check-reasonix-update",
         "douyin-downloader"
       ]
     },
@@ -24,13 +26,6 @@
       "description": "Skills for file conversion, data analysis, and document processing.",
       "skills": [
         "zh-quotes"
-      ]
-    },
-    {
-      "title": "Other",
-      "description": "Skills that do not fit into the above categories.",
-      "skills": [
-        "check-reasonix-update"
       ]
     }
   ]

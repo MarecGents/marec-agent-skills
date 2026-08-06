@@ -34,6 +34,18 @@ curl -L -o repo.zip https://api.github.com/repos/{owner}/{repo}/zipball
 
 下载完成后使用 `unzip` 或系统解压工具解压得到源码目录。
 
+**PowerShell（Windows）等价命令**：
+
+```powershell
+# 方式 A（注意 PowerShell 中 curl 是 Invoke-WebRequest 的别名，用 curl.exe 调用真实 curl）
+curl.exe -L -o repo.zip https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip
+# 或使用 Invoke-WebRequest
+Invoke-WebRequest -Uri "https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip" -OutFile repo.zip
+
+# 解压（PowerShell 用 Expand-Archive 而非 unzip）
+Expand-Archive -Path repo.zip -DestinationPath .
+```
+
 ## 优先级四：GitHub API 下载
 
 如果以上所有 clone/下载方式均不可行，使用 GitHub REST API 逐个获取文件内容：

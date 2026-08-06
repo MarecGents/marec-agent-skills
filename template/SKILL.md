@@ -8,9 +8,14 @@ description: >
 # Optional fields — uncomment and fill as needed:
 # license: MIT
 # compatibility: Describe any environment requirements (e.g., "Requires git and curl")
+# user-invocable: true                       # allow users to invoke directly (e.g. /name)
+# emoji: 🧠                                  # display icon (agent-orchestra style)
+# color: gold                                # display color (named or hex like "#D97706")
+# allowed-tools: "Bash(git clone:*), Read, Write"   # least-privilege tool allowlist
 # metadata:
 #   author: your-name
 #   version: 1.0.0
+#   model-task: what-kind-of-task
 ---
 
 # Your Skill Name

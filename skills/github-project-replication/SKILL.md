@@ -5,10 +5,11 @@ description: 自动化复现 GitHub 开源项目的完整工作流。当用户�
   即使只是说"帮我跑一下这个项目"、"试试这个 repo"、"部署这个仓库"，也应该触发此技能。
   同时会调用 brainstorming 进行前期分析，调用 planning-with-files 进行任务追踪与进度管理。
 license: MIT
-compatibility: 需有 brainstorming、planning-with-files 和 skill-standard-harness 三个技能可用。可选依赖 CodeGraph MCP 服务用于代码分析。
+compatibility: 需有 brainstorming（来源：github.com/obra/superpowers）、planning-with-files-zh（来源：github.com/othmanadi/planning-with-files）
+  和 skill-standard-harness（本仓库）三个技能可用。可选依赖 CodeGraph MCP 服务用于代码分析。
 metadata:
   author: community
-  version: "1.0"
+  version: "1.1"
   model-task: github-project-replication
 ---
 
@@ -21,7 +22,7 @@ metadata:
 ## 核心原则
 
 1. **必须先调用 brainstorming** — 每次任务执行**必须**先调用 brainstorming 技能进行前期构思和分析，**不得跳过此步骤**。这帮助你在动手之前全面理解项目目标和潜在挑战。
-2. **必须用 planning-with-files 做追踪** — 调用 planning-with-files 技能进行任务文件化追踪，该技能会创建 `task_plan.md`、`findings.md`、`progress.md` 三个核心追踪文件，让整个复现过程有迹可循、可回溯。
+2. **必须用 planning-with-files-zh 做追踪** — 调用 planning-with-files-zh 技能进行任务文件化追踪，该技能会创建 `task_plan.md`、`findings.md`、`progress.md` 三个核心追踪文件，让整个复现过程有迹可循、可回溯。
 3. **规范统一由 skill-standard-harness 管理** — 操作层面的公共规范（如 GitHub 仓库获取规范、Markdown 输出规范等）由 skill-standard-harness 统一维护，本技能不再重复定义。
 
 ---
@@ -29,6 +30,19 @@ metadata:
 ## GitHub 仓库获取规范
 
 复现项目的第一步是获取目标仓库的代码。请调用 `skill-standard-harness` 技能并读取 `references/github-access-standard.md`，按照其中的四级优先级规范执行获取操作。
+
+---
+
+## 目录说明
+
+```
+github-project-replication/
+├── SKILL.md    ← 本文件：六阶段工作流定义
+├── references/ ← 预留：本技能自身的参考文档（当前无内容）
+└── scripts/    ← 预留：本技能自身的辅助脚本（当前无内容）
+```
+
+> **注意**：本技能涉及的公共规范（GitHub 仓库获取、Markdown 输出）统一存放在 `skill-standard-harness/references/`，不在此目录重复维护。
 
 ---
 
@@ -56,7 +70,7 @@ metadata:
    - 复现它可能遇到哪些主要挑战？
    - 需要哪些前置条件（如 API 密钥、数据库、特定 OS）？
 
-2. **调用 planning-with-files** — 初始化三个追踪文件：
+2. **调用 planning-with-files-zh** — 初始化三个追踪文件：
    - `task_plan.md` — 拆解为可执行的任务清单
    - `findings.md` — 预留研究笔记空间
    - `progress.md` — 准备记录操作日志

@@ -58,20 +58,6 @@ LEFT_Q  = '\u201c'   # "
 RIGHT_Q = '\u201d'   # "
 
 
-def replace_quotes_in_text(text: str) -> str:
-    """Replace straight double quotes with Chinese full-width quotes in text."""
-    result = []
-    open_q = True
-    for ch in text:
-        if ch == '"':
-            result.append(LEFT_Q if open_q else RIGHT_Q)
-            open_q = not open_q
-        else:
-            result.append(ch)
-    # If odd number of quotes, leave the last one as-is (user can fix)
-    return ''.join(result)
-
-
 # ─── python-docx backend ──────────────────────────────────────────────
 
 if USE_DOCX:
@@ -118,8 +104,44 @@ if USE_DOCX:
                     for para in footer.paragraphs:
                         _process_para_docx(para)
 
+        # Process footnotes and endnotes (python-docx 无直接 API，
+        # 通过 related_parts 的底层 XML 访问，保证与 lxml 后端覆盖一致)
+        _W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+        for part in doc.part.related_parts.values():
+            ctype = getattr(part, 'content_type', '') or ''
+            if 'footnotes' in ctype or 'endnotes' in ctype:
+                root = part._element
+                for para in root.findall(f'.//{{{_W}}}p'):
+                    _process_para_element(para, _W)
+
         doc.save(output_path)
         print(f'Document saved: {output_path}')
+
+    def _process_para_element(para, W):
+        """Replace quotes in a single paragraph XML element (footnotes/endnotes)."""
+        pairs = []
+        for r in para.findall(f'{{{W}}}r'):
+            for t in r.findall(f'{{{W}}}t'):
+                if t.text is not None:
+                    pairs.append(t)
+
+        if not pairs:
+            return
+
+        open_q = True
+        for t in pairs:
+            new_chars = []
+            for ch in t.text:
+                if ch == '"':
+                    new_chars.append(LEFT_Q if open_q else RIGHT_Q)
+                    open_q = not open_q
+                elif ch in (LEFT_Q, RIGHT_Q):
+                    # Already a Chinese quote — keep and toggle state
+                    new_chars.append(ch)
+                    open_q = not open_q
+                else:
+                    new_chars.append(ch)
+            t.text = ''.join(new_chars)
 
     def _process_para_docx(para):
         """Replace quotes in a single python-docx paragraph (handles multi-run)."""
@@ -127,9 +149,6 @@ if USE_DOCX:
         text_runs = [(r, r.text) for r in para.runs if r.text]
         if not text_runs:
             return
-
-        # Build the full paragraph text
-        full = ''.join(text for _, text in text_runs)
 
         # Find and replace quotes character by character, tracking run boundaries
         new_texts = []
@@ -139,6 +158,11 @@ if USE_DOCX:
             for ch in orig_text:
                 if ch == '"':
                     new_chars.append(LEFT_Q if open_q else RIGHT_Q)
+                    open_q = not open_q
+                elif ch in (LEFT_Q, RIGHT_Q):
+                    # Already a Chinese quote — keep and toggle state
+                    # (必须与 lxml 后端保持一致，否则同一文档两后端结果不同)
+                    new_chars.append(ch)
                     open_q = not open_q
                 else:
                     new_chars.append(ch)
@@ -163,7 +187,7 @@ else:
             shutil.copy2(input_path, bak)
             print(f'Backup created: {bak}')
 
-            # Read all files from the ZIP
+        # Read all files from the ZIP
         with zipfile.ZipFile(input_path, 'r') as zin:
             files = {n: zin.read(n) for n in zin.namelist()}
 
@@ -193,11 +217,9 @@ else:
         except Exception:
             return xml_bytes
 
-        body = root.find(f'{{{W}}}body')
-        if body is None:
-            return xml_bytes
-
-        for para in body.findall(f'.//{{{W}}}p'):
+        # 遍历文档根下所有段落（w:p）。注意：footnotes.xml / endnotes.xml 的根元素
+        # 不是 w:body，但同样包含 w:p —— 因此不能只查 w:body，否则脚注尾注会被跳过。
+        for para in root.findall(f'.//{{{W}}}p'):
             # Collect all (run, text_elem) in order
             pairs = []
             for r in para.findall(f'{{{W}}}r'):

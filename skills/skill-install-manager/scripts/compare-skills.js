@@ -118,7 +118,11 @@ function getInstalledSkills() {
     });
     return JSON.parse(output.trim());
   } catch (err) {
-    console.error(`[ERROR] 无法获取已安装技能列表: ${err.message}`);
+    if (err && err.code === 'ENOENT' || (err && /not found|不是内部|无法识别/.test(err.message || ''))) {
+      console.error('[ERROR] 未找到 npx skills CLI。请先安装：npm install -g skills（或参考 https://skills.sh）');
+    } else {
+      console.error(`[ERROR] 无法获取已安装技能列表: ${err.message}`);
+    }
     return [];
   }
 }

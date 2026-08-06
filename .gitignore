@@ -55,3 +55,7 @@ temp/
 .reasonix/
 .planning/
 reasonix.toml
+
+# Sandbox dev copies (published to skills/ after review; keep isolated from git)
+sandbox/dev/
+sandbox/tests/fixtures/

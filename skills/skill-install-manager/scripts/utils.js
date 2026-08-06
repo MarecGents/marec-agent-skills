@@ -73,7 +73,7 @@ function gitLsRemoteWithRetry(owner, repo, retries = 1) {
     try {
       const output = execSync(cmd, {
         encoding: 'utf-8',
-        timeout: 10000,
+        timeout: 15000,
         maxBuffer: 1024 * 128
       });
       const sha = output.trim().split(/\s+/)[0];

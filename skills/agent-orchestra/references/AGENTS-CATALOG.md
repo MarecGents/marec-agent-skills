@@ -33,9 +33,9 @@ agent-orchestra/
 
 ## Agent 部门总览
 
-本系统包含 **251 个专业 Agent**，按 19 个部门组织。每个部门下有多个专业 Agent，每个 Agent 一个独立的 `.md` 文件。如需查找特定 Agent 的完整能力描述和文件路径，请查阅 `agents/dispatcher/总调度.md` 中的 Agent 注册表。
+本系统包含 **251 个专业 Agent**，按 19 个部门组织。每个部门下有多个专业 Agent，每个 Agent 一个独立的 `.md` 文件。如需查找特定 Agent 的完整能力描述和文件路径，请查阅 `references/agent-registry.md` 中的 Agent 注册表。
 
-### 🏗️ 研发与工程 (85 角色)
+### 🏗️ 研发与工程 (70 角色)
 
 | 部门 | 数量 | 路径 | 代表 Agent |
 |------|------|------|-----------|

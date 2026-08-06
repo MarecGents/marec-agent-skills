@@ -24,7 +24,7 @@ Skill Name and install command
 1. brainstorming: npx skills add https://github.com/obra/superpowers --skill brainstorming
 2. systematic-debugging: npx skills add https://github.com/obra/superpowers --skill systematic-debugging
 
-## Origin URL： https://github.com/anthropics/skills
+## Origin URL: https://github.com/anthropics/skills
 
 Skill Name and install command
 
@@ -35,19 +35,19 @@ Skill Name and install command
 5. theme-factory: npx skills add https://github.com/anthropics/skills --skill theme-factory
 6. xlsx: npx skills add https://github.com/anthropics/skills --skill xlsx
 
-## Origin URL： https://github.com/othmanadi/planning-with-files
+## Origin URL: https://github.com/othmanadi/planning-with-files
 
 Skill Name and install command
 
 1. planning-with-files-zh: npx skills add https://github.com/othmanadi/planning-with-files --skill planning-with-files-zh
 
-## Origin URL： https://github.com/pbakaus/impeccable
+## Origin URL: https://github.com/pbakaus/impeccable
 
 Skill Name and install command
 
 1. impeccable: npx skills add https://github.com/pbakaus/impeccable --skill impeccable
 
-## Origin URL： https://github.com/vercel-labs/agent-browser
+## Origin URL: https://github.com/vercel-labs/agent-browser
 
 Skill Name and install command
 

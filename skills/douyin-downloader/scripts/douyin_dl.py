@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 抖音视频下载器 — 无需 cookies，无需登录，无需第三方 API
-从抖音分享链接直接下载无水印原视频（4K）
+从抖音分享链接直接下载无水印原视频（原画质，最高 4K）
 
 用法:
     python douyin_dl.py "https://v.douyin.com/dl1KJ_7jHuM/"
@@ -42,7 +42,12 @@ def extract_video_id(url: str) -> str:
     session.headers.update(HEADERS)
 
     # 先跟随重定向
-    resp = session.get(url, allow_redirects=True, timeout=15)
+    try:
+        resp = session.get(url, allow_redirects=True, timeout=15)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"链接访问异常: {e}（请检查网络连接）")
+    if resp.status_code != 200:
+        raise RuntimeError(f"链接访问失败: HTTP {resp.status_code}（链接可能已失效或被屏蔽）")
     final_url = resp.url
 
     # 尝试从 URL 中匹配 /video/{id}
@@ -61,7 +66,12 @@ def extract_video_id(url: str) -> str:
 def fetch_video_info(video_id: str) -> dict:
     """从抖音分享页提取视频元信息"""
     share_url = f"https://www.iesdouyin.com/share/video/{video_id}/"
-    resp = requests.get(share_url, headers=HEADERS, timeout=15)
+    try:
+        resp = requests.get(share_url, headers=HEADERS, timeout=15)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"视频信息获取异常: {e}（请检查网络连接）")
+    if resp.status_code != 200:
+        raise RuntimeError(f"视频信息获取失败: HTTP {resp.status_code}（视频可能已删除或仅限私密）")
     html = resp.text
 
     # 定位 window._ROUTER_DATA
@@ -88,7 +98,10 @@ def fetch_video_info(video_id: str) -> dict:
                 break
 
     json_str = html[start:end]
-    data = json.loads(json_str)
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"_ROUTER_DATA JSON 解析失败: {e}（页面结构可能已变化）")
 
     # 提取视频详情
     try:
@@ -114,15 +127,16 @@ def get_download_url(video_info: dict) -> str:
         raise RuntimeError("未找到可下载的视频地址")
 
     url = url_list[0]
-    # 修复转义字符
-    url = url.replace("\\u0026", "&")
     return url
 
 
 def download_video(url: str, output_path: str) -> int:
     """下载视频到本地，返回文件大小"""
     dl_headers = {**HEADERS}
-    resp = requests.get(url, headers=dl_headers, timeout=120, stream=True)
+    try:
+        resp = requests.get(url, headers=dl_headers, timeout=120, stream=True)
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"下载请求异常: {e}（请检查网络连接）")
 
     if resp.status_code != 200:
         raise RuntimeError(f"下载失败: HTTP {resp.status_code}")
@@ -134,6 +148,14 @@ def download_video(url: str, output_path: str) -> int:
                 f.write(chunk)
                 total += len(chunk)
 
+    if total == 0:
+        # 0 字节说明拿到了错误页或空响应，删除文件避免留下损坏产物
+        try:
+            os.remove(output_path)
+        except OSError:
+            pass
+        raise RuntimeError("下载内容为空（0 字节），可能是错误页或链接已失效")
+
     return total
 
 
@@ -141,7 +163,7 @@ def download_video(url: str, output_path: str) -> int:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="抖音视频下载器 — 无需登录，无水印，4K 原画",
+        description="抖音视频下载器 — 无需登录，无水印，原画质（最高 4K）",
         epilog="示例: python douyin_dl.py https://v.douyin.com/xxxxx/ -o 我的视频.mp4",
     )
     parser.add_argument("url", help="抖音分享链接或视频页面链接")

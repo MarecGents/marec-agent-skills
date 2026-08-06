@@ -16,6 +16,13 @@ import re
 import os
 from pathlib import Path
 
+# 兼容 Windows GBK 控制台：stdout/stderr 强制使用 UTF-8，避免 emoji/中文输出崩溃
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 # 脚本所在目录的上级（即 skill 根目录）
 SKILL_DIR = Path(__file__).resolve().parent.parent
 REGISTRY_PATH = SKILL_DIR / "references" / "agent-registry.md"

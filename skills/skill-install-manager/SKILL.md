@@ -10,6 +10,9 @@ description: >
   技能安装管理相关的需求时，务必使用本技能。
 license: MIT
 compatibility: "Requires Node.js >= 18, git, and npx skills CLI"
+metadata:
+  author: user
+  version: "2.1"
 ---
 
 # skill-install-manager
@@ -280,7 +283,7 @@ web_fetch: https://api.github.com/repos/{owner}/{repo}/commits?per_page=1
 
 **尝试 A — HTTPS 安装（30s 超时）**：
 ```powershell
-$job = Start-Job -ScriptBlock { npx skills add "{url}" --skill "{name}" -g -a Reasonix -a "Claude Code" -a OpenCode -y }
+$job = Start-Job -ScriptBlock { npx skills add "{url}" --skill "{name}" -g -a reasonix -a "Claude Code" -a OpenCode -y }
 $result = $job | Wait-Job -Timeout 30
 if ($result) {
     $output = Receive-Job $job

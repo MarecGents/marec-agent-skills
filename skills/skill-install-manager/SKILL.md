@@ -12,7 +12,7 @@ license: MIT
 compatibility: "Requires Node.js >= 18, git, and npx skills CLI"
 metadata:
   author: user
-  version: "2.1"
+  version: "2.2"
 ---
 
 # skill-install-manager
@@ -66,18 +66,22 @@ metadata:
 步骤④ 获取安装状态（agent 直接运行 npx skills ls + read_file 读锁文件）
      │
      ▼
-步骤⑤ 对比分析（agent 逐一对比，每仓库 git ls-remote 15s 超时）
+步骤⑤ 对比分析（agent 逐一对比，每仓库 git ls-remote 15s 超时，同仓库共享一次查询）
      │     ├─ 成功 → 标记 outdated/upToDate
      │     └─ 超时 → web_fetch GitHub API 降级 → 标记 unknown
      │
      ▼
+步骤⑤.5 依赖预检（新！安装/更新前检查前置技能是否已装，缺失的加入安装队列并优先安装）
+     │
+     ▼
 步骤⑥ 执行安装/更新
+     │  ├─ 安装顺序：前置依赖 → 新增 → 缺失 → 更新
      │  ├─ 已安装技能：npx skills update → add → SSH → 手动
      │  ├─ 未安装技能：npx skills add → SSH → 手动（不变）
      │  └─ 新增技能：标记为待安装
      │
      ▼
-步骤⑦ 生成报告（agent 直接格式化输出）
+步骤⑦ 生成报告（agent 直接格式化输出，含依赖处理说明）
 ```
 
 ---
@@ -218,7 +222,7 @@ metadata:
 
 #### 5.2 逐仓库版本检查
 
-对每个来源仓库：
+对每个来源仓库（**同一仓库只查一次**，仓库内多个技能共享查询结果，避免重复网络请求）：
 
 ```
 正在检查: [仓库名称] (N 个技能)...
@@ -248,15 +252,56 @@ web_fetch: https://api.github.com/repos/{owner}/{repo}/commits?per_page=1
 
 #### 5.3 分类汇总
 
-每处理完一个仓库，实时输出进度：
+每处理完一个仓库，实时输出进度（同一仓库的技能共享同一次 commit 查询，结果一致）：
 
 ```
-📦 anthropics/skills (1 skill):
+📦 anthropics/skills (7 skills):
+   ✅ 仓库最新 commit 9d2f1a...（1 次查询，7 个技能共享）
    ✅ skill-creator → 可更新 (hash: 7e3c9c... → 9d2f1a...)
-📦 obra/superpowers (10 skills): 
+📦 obra/superpowers (2 skills): 
    ⚠️  git ls-remote 超时 → web_fetch 降级 → 最新 commit d884ae...
    ✅ brainstorming → 可更新
+   ✅ systematic-debugging → 已最新
    ... (等)
+```
+
+### 步骤⑤.5：依赖预检（安装/更新前）
+
+在执行安装/更新之前，**先检查待处理技能（missing / 🆕 / outdated）的前置依赖是否已安装**，避免装上技能后因缺少前置技能而无法工作。
+
+#### 5.5.1 判定依据
+
+按以下优先级查找技能的前置依赖声明（只要命中任一来源即可）：
+1. **列表文件标注**：如果 `Reasonix-skill-list-v2.md` 中某技能名出现在另一技能条目附近且有依赖说明，直接采用
+2. **技能自身元数据**：读取待安装技能 `SKILL.md` 的 frontmatter，检查 `related_skills`、`dependencies`、`requires` 字段
+3. **已知依赖模式**（无需联网，直接内置判断）：
+   - `default` → 依赖 `brainstorming`、`planning-with-files-zh`、`skill-standard-harness`
+   - `github-project-replication` → 依赖 `brainstorming`、`planning-with-files-zh`、`skill-standard-harness`
+   - `academic-pipeline` → 依赖 `academic-paper`、`academic-paper-reviewer`、`deep-research`
+   - `ieee-mg-writing` / `ieee-mg-polishing` / `ieee-mg-reviewer` → 依赖 `ieee-mg-share`
+   - `nature-*` 系列 → 依赖 `nature-shared`（或同源 `_shared`）
+   - `grill-me` → 依赖 `grilling`（同一仓库，必须一并安装）
+   - `zh-quotes` → 依赖 `docx`（作为 docx 的子技能）
+   - `pptx` → 文本提取需要 `markitdown`（pip 包，如列表含 markitdown 技能则一并安装）
+   - `researchwrite` → 依赖 `brainstorming`、`docx`（`professor`/`avoid-ai-writing` 为设计灵感，非运行依赖，不入列）
+
+#### 5.5.2 处理流程
+
+1. 对每个待处理技能，解析出前置依赖技能集合
+2. 与「当前已安装列表」（步骤④结果）对比：
+   - **前置已安装** → 无需处理，继续
+   - **前置未安装** → 将前置技能加入**安装队列**（记入 `pendingDeps`），并标注来源技能
+3. **依赖入列规则**：
+   - 前置技能若已存在于列表文件（有 installCmd）→ 直接加入安装队列
+   - 前置技能不在列表文件 → 报告给用户，询问是否将该前置技能的安装命令补充进列表文件后再安装
+   - 同一仓库的前置技能（如 grill-me → grilling）→ 优先同仓库安装，减少网络请求
+4. 输出依赖预检结果：
+
+```
+🔗 依赖预检:
+   grill-me → 依赖 grilling（同仓库，已加入安装队列）
+   default → 依赖 brainstorming/planning-with-files-zh/skill-standard-harness（均已安装 ✅）
+   ieee-mg-writing → 依赖 ieee-mg-share（已安装 ✅）
 ```
 
 ### 步骤⑥：执行安装/更新
@@ -272,6 +317,9 @@ web_fetch: https://api.github.com/repos/{owner}/{repo}/commits?per_page=1
 | **missing**（未安装） | `npx skills add` → SSH → 手动下载 |
 | **outdated**（已安装可更新） | `npx skills update` → `npx skills add` → SSH → 手动下载 |
 | **🆕 新增**（列表新增） | 等同 missing，标记为待安装 |
+| **pendingDeps**（依赖预检入列） | 等同 missing，但**优先于其他所有状态安装** |
+
+> **Agent 参数统一**：所有 `npx skills add` 命令统一使用 `-a reasonix -a "Claude Code" -a OpenCode`（三个 Agent 全量安装）。若某些 Agent 未安装导致报错，可回退到 `-a reasonix` 单 Agent。注意 `reasonix` 必须小写。
 
 ---
 
@@ -394,10 +442,14 @@ npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reason
 
 #### 6.4 安装顺序
 
-按 Origin URL 分组安装，同一仓库的技能一起处理。优先级：
-1. 🆕 **新增技能**（最先安装，确保新技能尽快就位）
-2. ❌ **缺失技能**（其次安装）
-3. 🔄 **可更新技能**（最后更新）
+按以下优先级安装（**依赖优先**，确保前置技能先就位）：
+
+1. 🔗 **pendingDeps 前置依赖技能**（最先安装，其他技能的前置必须先装好）
+2. 🆕 **新增技能**（其次安装，确保新技能尽快就位）
+3. ❌ **缺失技能**（再次安装）
+4. 🔄 **可更新技能**（最后更新）
+
+同仓库的技能尽量连续处理（共享一次 `git ls-remote` 与 clone 缓存），减少网络请求。依赖技能的安装失败**不阻塞**依赖方安装，但在最终报告中明确标注依赖未满足。
 
 ### 步骤⑦：生成报告
 
@@ -415,6 +467,12 @@ npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reason
    可更新   : 5 个（已更新: 3, 失败: 2）
    已最新   : 28 个
    状态未知 : 3 个
+   依赖补齐 : 1 个（grilling，因 grill-me 依赖而入列）
+
+🔗 依赖处理:
+   ✅ grill-me → grilling（已一并安装）
+   ✅ ieee-mg-writing → ieee-mg-share（已安装）
+   ❌ pptx → markitdown（pip 包，需手动 pip install "markitdown[pptx]"）
 
 📦 anthropics/skills:
    ✅ skill-creator → 已更新 (HTTPS)
@@ -516,5 +574,6 @@ npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reason
 6. **`skillFolderHash`**：这是 `.skill-lock.json` 中记录的安装时刻的 git commit SHA。如果锁文件中缺少此字段，技能会被标记为"状态未知"，agent 会尝试通过 `web_fetch` GitHub API 获取远程版本作为参考。
 7. **`skippable` 分类**：列表中的特殊条目（如 `_shared` 共享资源目录）没有安装命令，跳过不处理。
 8. **`npx skills update` 优先**：对于已安装的技能，**优先使用 `npx skills update <skill-name> -g -y`**（15s 超时），而不是重新 add。这比 `npx skills add` 更快（只更新已安装的技能，无需重新克隆整个仓库），且不会重复复制文件。仅当 update 失败时，才降级到 add。
-9. **路径大小写**：`MarecGents` 等路径大小写敏感，务必使用 `pwd` 确认的准确路径。
-10. **Agent 名称大小写**：`npx skills add` 的 `-a` 参数中 agent 名称大小写敏感。Reasonix 的合法名称为小写 `reasonix`（而非 `Reasonix`）。使用错误的名称会导致 `Invalid agents` 错误。
+9. **依赖预检必做**：步骤⑤.5 的依赖预检**不可跳过**。凡是安装/更新缺失或新增技能，必须先检查其前置依赖；依赖未安装会导致技能装上但不可用（如只有 grill-me 没有 grilling）。
+10. **路径大小写**：`MarecGents` 等路径大小写敏感，务必使用 `pwd` 确认的准确路径。
+11. **Agent 名称大小写**：`npx skills add` 的 `-a` 参数中 agent 名称大小写敏感。Reasonix 的合法名称为小写 `reasonix`（而非 `Reasonix`）。使用错误的名称会导致 `Invalid agents` 错误。

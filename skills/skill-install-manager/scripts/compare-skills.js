@@ -116,15 +116,46 @@ function getInstalledSkills() {
       timeout: 30000,
       maxBuffer: 1024 * 1024
     });
-    return JSON.parse(output.trim());
+    const parsed = JSON.parse(output.trim());
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+    // npx 返回空数组时，降级到锁文件
+    console.error('[WARN] npx skills ls 返回空，降级到锁文件推断安装状态');
+    return installedFromLock();
   } catch (err) {
     if (err && err.code === 'ENOENT' || (err && /not found|不是内部|无法识别/.test(err.message || ''))) {
       console.error('[ERROR] 未找到 npx skills CLI。请先安装：npm install -g skills（或参考 https://skills.sh）');
+      console.error('[INFO] 使用锁文件推断已安装技能，仍可完成 missing/outdated 对比');
     } else {
       console.error(`[ERROR] 无法获取已安装技能列表: ${err.message}`);
+      console.error('[INFO] 使用锁文件推断已安装技能，仍可完成 missing/outdated 对比');
     }
-    return [];
+    return installedFromLock();
   }
+}
+
+// ============================================================
+// 锁文件回退：从 .skill-lock.json 推断已安装技能
+// ============================================================
+function installedFromLock() {
+  const lockData = getLockData(null);
+  const lockSkills = lockData.skills || {};
+  const result = [];
+  for (const name of Object.keys(lockSkills)) {
+    const entry = lockSkills[name];
+    if (!entry) continue;
+    result.push({
+      name,
+      agents: entry.agents || [],
+      path: entry.skillPath || null,
+      skillFolderHash: entry.skillFolderHash || null
+    });
+  }
+  if (result.length > 0) {
+    console.error(`[INFO] 锁文件推断：${result.length} 个已安装技能（${result.map(s => s.name).join(', ')}）`);
+  }
+  return result;
 }
 
 // ============================================================
@@ -149,12 +180,18 @@ function getLockData(lockFilePath) {
 // ============================================================
 // 降级策略：当 skillFolderHash 缺失时，尝试通过远程仓库
 // 获取最新 commit SHA 作为参考，并标记来源
+// （originCheckCache: 主流程的仓库级缓存 Map，同一仓库只查一次）
 // ============================================================
-function fallbackVersionCheck(originUrl) {
+function fallbackVersionCheck(originUrl, originCheckCache) {
   const ghInfo = extractGitHubInfo(originUrl);
   if (!ghInfo) return null;
 
-  const latestSha = gitLsRemoteWithRetry(ghInfo.owner, ghInfo.repo);
+  const cacheKey = `${ghInfo.owner}/${ghInfo.repo}`;
+  let latestSha = originCheckCache ? originCheckCache.get(cacheKey) : null;
+  if (!latestSha) {
+    latestSha = gitLsRemoteWithRetry(ghInfo.owner, ghInfo.repo);
+    if (originCheckCache) originCheckCache.set(cacheKey, latestSha);
+  }
   if (latestSha) {
     return {
       remoteLatest: latestSha,
@@ -253,7 +290,7 @@ compare-skills.js — 技能列表对比工具
 
     // 情况 A：锁文件中无此技能条目
     if (!lockEntry) {
-      const fallback = fallbackVersionCheck(skill.originUrl);
+      const fallback = fallbackVersionCheck(skill.originUrl, originCheckCache);
       unknown.push({
         ...skill,
         reason: '锁文件中无此技能记录，无法比对版本',
@@ -264,7 +301,7 @@ compare-skills.js — 技能列表对比工具
 
     // 情况 B：锁文件有条目但缺少 skillFolderHash
     if (!lockEntry.skillFolderHash) {
-      const fallback = fallbackVersionCheck(skill.originUrl);
+      const fallback = fallbackVersionCheck(skill.originUrl, originCheckCache);
       unknown.push({
         ...skill,
         reason: '锁文件中无 skillFolderHash，无法对比版本',

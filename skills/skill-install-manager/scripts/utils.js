@@ -45,7 +45,8 @@ function httpsToSsh(url) {
 // ============================================================
 // 执行 shell 命令，返回结构化结果
 // ============================================================
-function runCommand(cmd, timeout = 120000) {
+// 默认超时 30s，与 SKILL.md 超时原则一致（npx skills add 30s / update 15s / git ls-remote 15s）
+function runCommand(cmd, timeout = 30000) {
   try {
     const output = execSync(cmd, {
       encoding: 'utf-8',

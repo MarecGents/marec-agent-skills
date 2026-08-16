@@ -56,6 +56,33 @@ function buildInstallCmd(url, skillName, agents) {
 }
 
 // ============================================================
+// 检查技能是否已安装（本地 skills 目录存在）
+// ============================================================
+function isSkillInstalled(skillName) {
+  const userProfile = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\MarecGents';
+  const dirs = [
+    path.join(userProfile, '.agents', 'skills', skillName),
+    path.join(userProfile, '.reasonix', 'skills', skillName)
+  ];
+  return dirs.some(d => fs.existsSync(d));
+}
+
+// ============================================================
+// 已安装技能：优先尝试 npx skills update
+// ============================================================
+function updateViaNpx(skillName) {
+  const cmd = `npx skills update "${skillName}" -g -y`;
+  console.error(`[UPDATE] 技能已安装，优先执行更新: ${cmd}`);
+  const result = runCommand(cmd);
+  if (result.success) {
+    console.error(`[UPDATE] ✓ ${skillName} 更新成功`);
+    return { status: 'updated', method: 'update', details: result.output };
+  }
+  console.error(`[UPDATE] ✗ 更新失败（${result.error}），降级到重新安装`);
+  return null;
+}
+
+// ============================================================
 // 尝试方法一：HTTPS URL 安装
 // ============================================================
 function installViaHttps(url, skillName, agents) {
@@ -249,10 +276,12 @@ function githubApiGet(endpoint) {
 
 function githubApiGetRaw(owner, repo, branch, filePath) {
   return new Promise((resolve, reject) => {
-    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`;
+    // 对路径各段做 encodeURIComponent，避免文件/目录名含空格或特殊字符时 404
+    const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${encodeURIComponent(branch)}/${encodedPath}`;
     const options = {
       hostname: 'raw.githubusercontent.com',
-      path: `/${owner}/${repo}/${branch}/${filePath}`,
+      path: `/${owner}/${repo}/${encodeURIComponent(branch)}/${encodedPath}`,
       method: 'GET',
       headers: { 'User-Agent': 'skill-install-manager/1.0' },
       timeout: 20000
@@ -300,6 +329,7 @@ install-skill.js — 技能安装工具（三级回退）
   --help, -h        显示此帮助信息
 
 三级回退:
+  0. 已安装 → npx skills update <name> -g -y（优先更新，不重装）
   1. HTTPS  → npx skills add <url> --skill <name> -g -a ...
   2. SSH    → npx skills add git@github.com:owner/repo.git --skill <name> -g -a ...
   3. Manual → GitHub API 直接下载文件到全局 skills 目录
@@ -321,9 +351,17 @@ install-skill.js — 技能安装工具（三级回退）
 
   let result = null;
 
-  // 方法一：HTTPS
-  console.error(`\n━━━ 方法 1/3: HTTPS ━━━`);
-  result = installViaHttps(opts.url, opts.name, opts.agents);
+  // 已安装的技能：优先 npx skills update（与 SKILL.md 6.3 一致）
+  if (isSkillInstalled(opts.name)) {
+    console.error(`\n[INFO] 检测到 "${opts.name}" 已安装，尝试更新而非重装`);
+    result = updateViaNpx(opts.name);
+  }
+
+  // 方法一：HTTPS（未安装，或 update 失败降级重装）
+  if (!result) {
+    console.error(`\n━━━ 方法 1/3: HTTPS ━━━`);
+    result = installViaHttps(opts.url, opts.name, opts.agents);
+  }
 
   // 方法二：SSH
   if (!result) {

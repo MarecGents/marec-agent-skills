@@ -12,7 +12,7 @@ license: MIT
 compatibility: "Requires Node.js >= 18, git, and npx skills CLI"
 metadata:
   author: user
-  version: "2.4"
+  version: "2.5"
 ---
 
 # skill-install-manager
@@ -319,7 +319,7 @@ web_fetch: https://api.github.com/repos/{owner}/{repo}/commits?per_page=1
 | **🆕 新增**（列表新增） | 等同 missing，标记为待安装 |
 | **pendingDeps**（依赖预检入列） | 等同 missing，但**优先于其他所有状态安装** |
 
-> **Agent 参数统一**：所有 `npx skills add` 命令统一使用 `-a reasonix -a claude-code -a opencode`（三个 Agent 全量安装，**agent 名全部小写连字符**：`reasonix`、`claude-code`、`opencode`）。若某些 Agent 未安装导致报错，可回退到 `-a reasonix` 单 Agent。
+> **Agent 参数统一（白名单）**：所有 `npx skills add` 命令统一使用 `-a reasonix -a claude-code -a opencode -a codex`（四个 Agent 全量安装，**agent 名全部小写连字符**：`reasonix`、`claude-code`、`opencode`、`codex`）。**不安装 GitHub Copilot（`github-copilot`）与 Kimi Code CLI（`kimi-code-cli`）**——这是本机确定的安装白名单，任何安装/更新命令不得包含这两个 agent。若某些 Agent 未安装导致报错，可回退到 `-a reasonix` 单 Agent。
 
 ---
 
@@ -331,7 +331,7 @@ web_fetch: https://api.github.com/repos/{owner}/{repo}/commits?per_page=1
 
 **尝试 A — HTTPS 安装（30s 超时）**：
 ```powershell
-$job = Start-Job -ScriptBlock { npx skills add "{url}" --skill "{name}" -g -a reasonix -a claude-code -a opencode -y }
+$job = Start-Job -ScriptBlock { npx skills add "{url}" --skill "{name}" -g -a reasonix -a claude-code -a opencode -a codex -y }
 $result = $job | Wait-Job -Timeout 30
 if ($result) {
     $output = Receive-Job $job
@@ -576,4 +576,4 @@ npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reason
 8. **`npx skills update` 优先**：对于已安装的技能，**优先使用 `npx skills update <skill-name> -g -y`**（15s 超时），而不是重新 add。这比 `npx skills add` 更快（只更新已安装的技能，无需重新克隆整个仓库），且不会重复复制文件。仅当 update 失败时，才降级到 add。
 9. **依赖预检必做**：步骤⑤.5 的依赖预检**不可跳过**。凡是安装/更新缺失或新增技能，必须先检查其前置依赖；依赖未安装会导致技能装上但不可用（如只有 grill-me 没有 grilling）。
 10. **路径大小写**：`MarecGents` 等路径大小写敏感，务必使用 `pwd` 确认的准确路径。
-11. **Agent 名称大小写**：`npx skills add` 的 `-a` 参数中 agent 名称大小写敏感，且必须使用**小写连字符形式**。Reasonix 为 `reasonix`、Claude Code 为 `claude-code`、OpenCode 为 `opencode`。使用展示名（`Reasonix` / `Claude Code` / `OpenCode`）会报 `Invalid agents` 错误。
+11. **Agent 名称大小写与白名单**：`npx skills add` 的 `-a` 参数中 agent 名称大小写敏感，且必须使用**小写连字符形式**。Reasonix 为 `reasonix`、Claude Code 为 `claude-code`、OpenCode 为 `opencode`、Codex 为 `codex`。使用展示名（`Reasonix` / `Claude Code` / `OpenCode`）会报 `Invalid agents` 错误。**本机安装白名单仅限以上 4 个 agent**——不要安装 `github-copilot`（GitHub Copilot）与 `kimi-code-cli`（Kimi Code CLI）。

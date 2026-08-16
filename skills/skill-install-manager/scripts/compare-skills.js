@@ -13,15 +13,16 @@
  *   "installed": [...],
  *   "missing": [...],        // 可安装但未安装的技能
  *   "skippable": [...],      // 不可安装的条目（如 _shared，无 installCmd）
- *   "outdated": [...],       // 已安装但有远程更新的技能
+ *   "outdated": [...],       // 已安装且有远程更新的技能（仅 40 位 commit SHA 可对比）
  *   "upToDate": [...],       // 已是最新的技能
- *   "unknown": [...],        // 版本状态未知的技能
+ *   "unknown": [...],        // 版本状态未知（含锁文件 hash 非 commit SHA 的旧记录）
  *   "summary": { ... }
  * }
  */
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const { extractGitHubInfo, gitLsRemoteWithRetry } = require('./utils');
 
 // ============================================================
@@ -202,9 +203,40 @@ function fallbackVersionCheck(originUrl, originCheckCache) {
 }
 
 // ============================================================
+// 验证一个 40 位 hash 是否为仓库中真实存在的 commit
+// （npx skills add 可能写入 40 位 tree/blob SHA 而非 commit SHA，
+//   需区分"真 outdated"与"hash 是 tree SHA 的旧记录"）
+// 返回: true=是 commit | false=不是 commit（404）| null=网络错误
+// ============================================================
+function isRealCommit(owner, repo, sha, timeoutMs = 10000) {
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'api.github.com',
+      path: `/repos/${owner}/${repo}/commits/${encodeURIComponent(sha)}`,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'skill-install-manager/2.4',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      timeout: timeoutMs
+    }, (res) => {
+      res.resume();
+      res.on('end', () => {
+        if (res.statusCode === 200) resolve(true);
+        else if (res.statusCode === 404) resolve(false);
+        else resolve(null);
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.end();
+  });
+}
+
+// ============================================================
 // 主逻辑
 // ============================================================
-function main() {
+async function main() {
   const opts = parseArgs();
 
   // --help 处理
@@ -311,6 +343,21 @@ compare-skills.js — 技能列表对比工具
     }
 
     // 情况 C：有 skillFolderHash，进行远程比对
+    // 先校验 hash 是否为 40 位十六进制 commit SHA。
+    // 旧版安装器（v2.2 前）会把 64 位 blob/tree SHA 写入锁文件，与 git ls-remote
+    // 返回的 commit SHA 永久不等 → 导致误报 outdated。此类记录无法可靠对比，
+    // 归入 unknown 并提示刷新，而非标记为可更新。
+    if (!/^[0-9a-f]{40}$/i.test(lockEntry.skillFolderHash)) {
+      const fallback = fallbackVersionCheck(skill.originUrl, originCheckCache);
+      unknown.push({
+        ...skill,
+        reason: `锁文件 skillFolderHash 非 commit SHA（${lockEntry.skillFolderHash.length} 位，疑似旧版写入的 blob/tree SHA），无法对比版本`,
+        fallback: fallback || undefined,
+        refreshHint: '执行 npx skills update 刷新锁记录后可正常对比'
+      });
+      continue;
+    }
+
     const ghInfo = extractGitHubInfo(skill.originUrl);
     if (!ghInfo) {
       unknown.push({ ...skill, reason: `无法从 URL 解析 GitHub 信息: ${skill.originUrl}` });
@@ -337,11 +384,31 @@ compare-skills.js — 技能列表对比工具
 
     const installedHash = lockEntry.skillFolderHash;
     if (installedHash !== latestSha) {
-      outdated.push({
-        ...skill,
-        currentHash: installedHash,
-        latestHash: latestSha
-      });
+      // hash ≠ 远程 HEAD commit：可能是真 outdated，也可能是 npx skills add
+      // 写入的 40 位 tree/blob SHA（目录快照，非 commit）。用 GitHub API 验证
+      // 该 hash 是否为真实 commit，避免把 tree SHA 误报为可更新。
+      const isCommit = await isRealCommit(ghInfo.owner, ghInfo.repo, installedHash);
+      if (isCommit === true) {
+        outdated.push({
+          ...skill,
+          currentHash: installedHash,
+          latestHash: latestSha
+        });
+      } else if (isCommit === false) {
+        unknown.push({
+          ...skill,
+          reason: `锁文件 skillFolderHash 是 40 位但非 commit（疑似 npx skills add 写入的 tree/blob SHA），无法对比版本`,
+          fallback: { remoteLatest: latestSha, note: '远程最新 commit 可参考；如需更新请执行 npx skills update' },
+          refreshHint: '执行 npx skills update 刷新锁记录后可正常对比'
+        });
+      } else {
+        // 网络错误无法验证：保守归入 unknown，避免误报 outdated
+        unknown.push({
+          ...skill,
+          reason: `hash 与远程 HEAD 不一致，且无法验证是否为 commit（网络错误）`,
+          fallback: { remoteLatest: latestSha, note: '远程最新 commit 可参考' }
+        });
+      }
     } else {
       upToDate.push(skill);
     }

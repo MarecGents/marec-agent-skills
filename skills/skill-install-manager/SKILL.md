@@ -12,7 +12,7 @@ license: MIT
 compatibility: "Requires Node.js >= 18, git, and npx skills CLI"
 metadata:
   author: user
-  version: "2.3"
+  version: "2.4"
 ---
 
 # skill-install-manager
@@ -571,7 +571,7 @@ npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reason
 3. **进度可见**：每处理完一个仓库/技能，必须输出进度标记（`✅`/`⚠️`/`❌`），不能长时间静默。
 4. **网络环境**：GitHub API（`api.github.com`）和 raw 文件（`raw.githubusercontent.com`）可能需要代理。如果所有方式都失败，向用户报告具体情况。
 5. **文件路径**：Windows 路径中的反斜杠需要用双引号包裹，或在 PowerShell 中使用单引号。
-6. **`skillFolderHash`**：这是 `.skill-lock.json` 中记录的安装时刻的 git commit SHA。如果锁文件中缺少此字段，技能会被标记为"状态未知"，agent 会尝试通过 `web_fetch` GitHub API 获取远程版本作为参考。
+6. **`skillFolderHash`**：这是 `.skill-lock.json` 中记录的安装时刻的 git commit SHA（**40 位十六进制**）。如果锁文件中缺少此字段，技能会被标记为"状态未知"，agent 会尝试通过 `web_fetch` GitHub API 获取远程版本作为参考。**旧版安装器（v2.2 前）可能写入 64 位 blob/tree SHA**——此类记录无法与 `git ls-remote` 的 commit SHA 对比，compare-skills.js 会将其归入 `unknown`（带 `refreshHint`）而非误报 `outdated`；执行 `npx skills update` 刷新锁记录后可恢复对比。
 7. **`skippable` 分类**：列表中的特殊条目（如 `_shared` 共享资源目录）没有安装命令，跳过不处理。
 8. **`npx skills update` 优先**：对于已安装的技能，**优先使用 `npx skills update <skill-name> -g -y`**（15s 超时），而不是重新 add。这比 `npx skills add` 更快（只更新已安装的技能，无需重新克隆整个仓库），且不会重复复制文件。仅当 update 失败时，才降级到 add。
 9. **依赖预检必做**：步骤⑤.5 的依赖预检**不可跳过**。凡是安装/更新缺失或新增技能，必须先检查其前置依赖；依赖未安装会导致技能装上但不可用（如只有 grill-me 没有 grilling）。

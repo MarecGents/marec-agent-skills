@@ -31,7 +31,7 @@ const { httpsToSsh, extractGitHubInfo, runCommand } = require('./utils');
 function parseArgs() {
   const args = process.argv.slice(2);
   const opts = {
-    agents: ['reasonix', 'Claude Code', 'OpenCode']
+    agents: ['reasonix', 'claude-code', 'opencode']
   };
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--name' && i + 1 < args.length) {
@@ -318,13 +318,13 @@ install-skill.js — 技能安装工具（三级回退）
 
 用法:
   node install-skill.js --name <skill-name> --url <origin-url>
-  node install-skill.js --name <skill-name> --url <origin-url> --agents "reasonix,Claude Code,OpenCode"
+  node install-skill.js --name <skill-name> --url <origin-url> --agents "reasonix,claude-code,opencode"
   node install-skill.js --help
 
 参数:
   --name <name>     技能名称（必需）
   --url <url>       来源仓库 URL（必需）
-  --agents <list>   安装到的 Agent 列表，逗号分隔（可选，默认 reasonix,Claude Code,OpenCode）
+  --agents <list>   安装到的 Agent 列表，逗号分隔（可选，默认 reasonix,claude-code,opencode；agent 名必须小写连字符）
   --lock <path>     指向 .skill-lock.json 的路径（可选）
   --help, -h        显示此帮助信息
 

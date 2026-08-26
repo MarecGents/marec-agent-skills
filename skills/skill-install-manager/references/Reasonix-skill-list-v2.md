@@ -181,22 +181,23 @@ Skill Name and install command
 
 Skill Name and install command
 
-1. project-setup: npx skills add https://github.com/wdm0006/python-skills --skill python-project-setup
-2. code-quality: npx skills add https://github.com/wdm0006/python-skills --skill python-code-quality
-3. testing-strategy: npx skills add https://github.com/wdm0006/python-skills --skill python-testing-strategy
-4. packaging: npx skills add https://github.com/wdm0006/python-skills --skill python-packaging
-5. release-management: npx skills add https://github.com/wdm0006/python-skills --skill python-release-management
-6. security-audit: npx skills add https://github.com/wdm0006/python-skills --skill python-security-audit
-7. performance: npx skills add https://github.com/wdm0006/python-skills --skill python-performance
-8. api-design: npx skills add https://github.com/wdm0006/python-skills --skill python-api-design
-9. cli-development: npx skills add https://github.com/wdm0006/python-skills --skill python-cli-development
-10. documentation: npx skills add https://github.com/wdm0006/python-skills --skill python-documentation
-11. web-app-architecture: npx skills add https://github.com/wdm0006/python-skills --skill python-web-app-architecture
-12. mcp-servers: npx skills add https://github.com/wdm0006/python-skills --skill python-mcp-servers
-13. llm-features: npx skills add https://github.com/wdm0006/python-skills --skill python-llm-features
-14. lazy-dependencies: npx skills add https://github.com/wdm0006/python-skills --skill python-lazy-dependencies
-15. library-review: npx skills add https://github.com/wdm0006/python-skills --skill python-library-review
-16. community: npx skills add https://github.com/wdm0006/python-skills --skill python-community
+# 注：技能实际名为 CLI 发现的 frontmatter 名（2026-08-26 实测），非目录名
+1. setting-up-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill setting-up-python-libraries
+2. improving-python-code-quality: npx skills add https://github.com/wdm0006/python-skills --skill improving-python-code-quality
+3. testing-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill testing-python-libraries
+4. packaging-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill packaging-python-libraries
+5. managing-python-releases: npx skills add https://github.com/wdm0006/python-skills --skill managing-python-releases
+6. auditing-python-security: npx skills add https://github.com/wdm0006/python-skills --skill auditing-python-security
+7. optimizing-python-performance: npx skills add https://github.com/wdm0006/python-skills --skill optimizing-python-performance
+8. designing-python-apis: npx skills add https://github.com/wdm0006/python-skills --skill designing-python-apis
+9. building-python-clis: npx skills add https://github.com/wdm0006/python-skills --skill building-python-clis
+10. documenting-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill documenting-python-libraries
+11. building-python-web-apps: npx skills add https://github.com/wdm0006/python-skills --skill building-python-web-apps
+12. building-python-mcp-servers: npx skills add https://github.com/wdm0006/python-skills --skill building-python-mcp-servers
+13. building-llm-backed-features: npx skills add https://github.com/wdm0006/python-skills --skill building-llm-backed-features
+14. deferring-heavy-dependencies: npx skills add https://github.com/wdm0006/python-skills --skill deferring-heavy-dependencies
+15. reviewing-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill reviewing-python-libraries
+16. building-python-communities: npx skills add https://github.com/wdm0006/python-skills --skill building-python-communities
 
 ## Origin URL: https://github.com/Amplicode/spring-skills
 
@@ -222,6 +223,7 @@ Skill Name and install command
 
 Skill Name and install command
 
+# 注：其中 5 个（react-best-practices / composition-patterns / react-view-transitions / react-native-skills / writing-guidelines）CLI 无法发现（frontmatter name 异常），已手动安装（Tier C 下载到 ~/.agents/skills/），不适用 npx skills add
 1. react-best-practices: npx skills add https://github.com/vercel-labs/agent-skills --skill react-best-practices
 2. web-design-guidelines: npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
 3. composition-patterns: npx skills add https://github.com/vercel-labs/agent-skills --skill composition-patterns
@@ -245,7 +247,7 @@ Skill Name and install command
 1. cpp-code-format: npx skills add https://github.com/zhuangwenhui/CodingSkills --skill cpp-code-format
 2. incremental-change-cycle: npx skills add https://github.com/zhuangwenhui/CodingSkills --skill incremental-change-cycle
 3. python-code-format: npx skills add https://github.com/zhuangwenhui/CodingSkills --skill python-code-format
-4. prompt-engineering: npx skills add https://github.com/zhuangwenhui/CodingSkills --skill prompt-engineering
+4. customaize-agent:prompt-engineering: npx skills add https://github.com/zhuangwenhui/CodingSkills --skill "customaize-agent:prompt-engineering"
 5. create-hook: npx skills add https://github.com/zhuangwenhui/CodingSkills --skill create-hook
 
 ## Origin URL: https://github.com/dotnet/skills
@@ -273,6 +275,7 @@ Skill Name and install command
 11. migrate-static-to-wrapper: npx skills add https://github.com/dotnet/skills --skill migrate-static-to-wrapper
 12. mtp-hot-reload: npx skills add https://github.com/dotnet/skills --skill mtp-hot-reload
 13. platform-detection: npx skills add https://github.com/dotnet/skills --skill platform-detection
+# 注：run-tests 与 Amplicode/spring-skills 的 run-tests 重名冲突（~/.agents/skills/run-tests 只能存一个），本次保留 spring 版、跳过 dotnet 版；如需 dotnet 版请改名为 run-tests-dotnet 后追加
 14. run-tests: npx skills add https://github.com/dotnet/skills --skill run-tests
 15. scaffold-dotnet-test-project: npx skills add https://github.com/dotnet/skills --skill scaffold-dotnet-test-project
 16. test-analysis-extensions: npx skills add https://github.com/dotnet/skills --skill test-analysis-extensions
@@ -293,39 +296,40 @@ Skill Name and install command
 
 Skill Name and install command
 
-1. csharp-coding-standards: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-coding-standards ⭐
-2. csharp-api-design: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-api-design ⭐
-3. csharp-concurrency-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-concurrency-patterns ⭐
+# 注：以下技能名为 CLI 实测的 frontmatter 名（2026-08-26），与目录名不同
+1. modern-csharp-coding-standards: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill modern-csharp-coding-standards
+2. api-design: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill api-design
+3. csharp-concurrency-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-concurrency-patterns
 4. csharp-nullable-reference-types: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-nullable-reference-types
-5. csharp-type-design-performance: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-type-design-performance
-6. efcore-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill efcore-patterns ⭐
-7. microsoft-extensions-dependency-injection: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill microsoft-extensions-dependency-injection
+5. type-design-performance: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill type-design-performance
+6. efcore-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill efcore-patterns
+7. dependency-injection-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill dependency-injection-patterns
 8. microsoft-extensions-configuration: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill microsoft-extensions-configuration
 9. database-performance: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill database-performance
 10. serialization: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill serialization
-11. slopwatch: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill slopwatch ⭐
+11. dotnet-slopwatch: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill dotnet-slopwatch
 12. crap-analysis: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill crap-analysis
 13. snapshot-testing: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill snapshot-testing
-14. testcontainers: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill testcontainers ⭐
-15. playwright-blazor: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill playwright-blazor
+14. testcontainers-integration-tests: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill testcontainers-integration-tests
+15. playwright-blazor-testing: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill playwright-blazor-testing
 16. playwright-ci-caching: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill playwright-ci-caching
-17. project-structure: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill project-structure
+17. dotnet-project-structure: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill dotnet-project-structure
 18. package-management: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill package-management
-19. local-tools: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill local-tools
+19. dotnet-local-tools: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill dotnet-local-tools
 20. dotnet-devcert-trust: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill dotnet-devcert-trust
 21. ilspy-decompile: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill ilspy-decompile
 22. verify-email-snapshots: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill verify-email-snapshots
 23. mjml-email-templates: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill mjml-email-templates
 24. aspire-configuration: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill aspire-configuration
 25. aspire-integration-testing: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill aspire-integration-testing
-26. aspire-mailpit-integration: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill aspire-mailpit-integration
+26. mailpit-integration: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill mailpit-integration
 27. aspire-service-defaults: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill aspire-service-defaults
-28. akka-best-practices: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-best-practices
+28. akka-net-best-practices: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-net-best-practices
 29. akka-hosting-actor-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-hosting-actor-patterns
-30. akka-testing-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-testing-patterns
-31. akka-aspire-configuration: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-aspire-configuration
-32. akka-management: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-management
-33. opentelementry-dotnet-instrumentation: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill opentelementry-dotnet-instrumentation
+30. akka-net-testing-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-net-testing-patterns
+31. akka-net-aspire-configuration: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-net-aspire-configuration
+32. akka-net-management: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill akka-net-management
+33. opentelemetry-net-instrumentation: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill opentelemetry-net-instrumentation
 34. marketplace-publishing: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill marketplace-publishing
 35. r3-reactive-extensions: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill r3-reactive-extensions
 36. skills-index-snippets: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill skills-index-snippets

@@ -112,11 +112,13 @@ npx skills add MarecGents/marec-agent-skills
 技能安装管理器 — 自动读取技能列表文件，与当前全局已安装技能进行对比，
 找出未安装或存在更新的技能，并执行一键安装/更新。
 
-**核心改进 v2：**
+**核心改进 v3（脚本全自动 + CDN 加速）：**
+- 🤖 **单一脚本驱动**：`scripts/sync-skills.js` 全自动完成 自更新→读列表→对比→依赖预检→安装/更新→报告，agent 只跑脚本、读 JSON 报告
 - ⏫ **自更新优先**：运行技能时先更新自身，确保技能列表文件为最新
-- 🔄 **`npx skills update` 优先**：对已安装技能优先使用 `npx skills update`（更快、不重复克隆），失败再降级到 `npx skills add`
-- 📋 **新旧列表对比**：自更新后对比更新前后的技能列表，自动标记 🆕新增/🗑️移除/➡️延续三类技能
-- 🧩 **三级安装回退**：`npx skills update` → `npx skills add` HTTPS → SSH → GitHub API 手动下载
+- 🚀 **五通道回退 + CDN 加速**：`npx update` → `npx add` HTTPS → SSH → **codeload tarball zip**（一次 HTTP 下载，无需 git 协议）→ **jsDelivr CDN 逐文件**（`cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/`）→ GitHub API 兜底；`--cdn-first` 可切换 CDN 优先
+- ⚡ **版本对比并发 + 缓存**：每仓库只查一次 commit SHA，并发 4，缓存 TTL 6h（`~/.agents/.skill-remote-cache.json`），重复运行几乎秒出
+- 🔗 **依赖预检脚本化**：内置依赖表 + `dependencies.local.json` 覆盖，未安装依赖自动入队优先安装
+- 📋 **新旧列表对比**：自更新后自动标记 🆕新增/🗑️移除/➡️延续
 
 **Use when:**
 - "检查并安装缺少的技能" / "看看哪些技能还没装"
@@ -125,15 +127,10 @@ npx skills add MarecGents/marec-agent-skills
 - 任何与技能安装、同步、更新、管理相关的需求
 
 **Features:**
-- **自更新流程**：⓪自更新 → ①读新列表 → ②新旧对比 → ③解析 → ④获取状态 → ⑤对比 → ⑥安装/更新 → ⑦报告
-- **智能更新策略**：
-  - 🆕 新增技能 → `npx skills add` 安装（最先安装）
-  - ❌ 缺失技能 → `npx skills add` 安装（其次安装）
-  - 🔄 已安装可更新 → `npx skills update` 优先（15s 超时），失败降级到 add
-- 双模式执行：agent 直行（主路径，超时可控+进度可见）+ JS 脚本辅助
-- 内置技能列表文件 `references/Reasonix-skill-list-v2.md`，开机即用
-- 版本对比：`git ls-remote` + `web_fetch` GitHub API 双通道
-- 支持 `-a reasonix`（小写）避免大小写错误
+- **一键同步**：`node "<skill-path>\scripts\sync-skills.js"` 全自动
+- **五通道安装回退**：官方通道优先，网络差时自动降级到 codeload / jsDelivr CDN
+- 版本对比：git ls-remote（并发+缓存）+ GitHub API 双通道
+- 依赖预检、Agent 白名单（reasonix / claude-code / opencode / codex）、JSON 报告（`~/.agents/skill-sync-report.json`）
 
 ### zh-quotes
 

@@ -2,22 +2,23 @@
 name: skill-install-manager
 description: >
   技能安装管理器 — 自动读取技能列表文件，与当前全局已安装技能进行对比，
-  找出未安装或存在更新的技能，并执行一键安装/更新。支持三级回退：
-  HTTPS → SSH → MCP/GitHub API 直接抓取。使用 `npx skills` 命令安装，
-  安装为 Global，指定 Reasonix / Claude Code / OpenCode 三个 Agent。
-  当用户提到"检查技能"、"同步技能"、"安装技能"、"技能管理"、
-  "skill update"、"skill sync"、"批量安装"、"缺少技能"等任何与
-  技能安装管理相关的需求时，务必使用本技能。
+  找出未安装或存在更新的技能，并执行一键安装/更新。v3.0 起全部流程由
+  脚本自动完成（sync-skills.js 主编排），支持五通道回退与 CDN 加速：
+  HTTPS → SSH → codeload tarball → jsDelivr CDN → GitHub API。使用
+  `npx skills` 命令安装，安装为 Global，指定 Reasonix / Claude Code /
+  OpenCode / Codex 四个 Agent。当用户提到"检查技能"、"同步技能"、
+  "安装技能"、"技能管理"、"skill update"、"skill sync"、"批量安装"、
+  "缺少技能"等任何与技能安装管理相关的需求时，务必使用本技能。
 license: MIT
 compatibility: "Requires Node.js >= 18, git, and npx skills CLI"
 metadata:
   author: user
-  version: "2.5"
+  version: "3.0"
 ---
 
 # skill-install-manager
 
-> 技能安装管理器 — 自动读取技能列表文件，与当前全局已安装技能进行对比，找出未安装或存在更新的技能，并执行一键安装/更新。支持三级回退：HTTPS → SSH → MCP/GitHub API 直接抓取。使用 `npx skills` 命令安装，安装为 Global，指定 Reasonix / Claude Code / OpenCode 三个 Agent。
+> 技能安装管理器 — 自动读取技能列表文件，与当前全局已安装技能进行对比，找出未安装或存在更新的技能，并执行一键安装/更新。**v3.0：所有流程、判断、渠道切换均由脚本自动完成，agent 只运行脚本并读取 JSON 报告。**
 
 ## 触发条件
 
@@ -33,478 +34,185 @@ metadata:
 - "把新技能装上" / "补一下缺少的技能"
 - "npx skills" / "skills add" / "技能仓库"
 
-## 执行模式说明
+## 执行模式（v3.0：单一脚本驱动）
 
-本 Skill 采用 **agent 直接执行（主路径）+ JS 脚本（可选辅助）** 的双模式设计：
+**agent 不再逐条执行安装命令。** 全部流程由 `scripts/sync-skills.js` 一次跑完，
+agent 只做四件事：
 
-| 模式 | 适用场景 | 特点 |
-|------|---------|------|
-| **🟢 agent 直行** | 默认模式，推荐 | 每一步可见进度、超时可控、超时后自动降级 |
-| **🔵 JS 脚本辅助** | 需要批量格式化输出时 | 快速输出结构化 JSON，但遇到网络问题可能卡住 |
+1. **运行主编排脚本**（默认全自动同步，或按需加参数）
+2. **读取 JSON 报告**（脚本写入 `~/.agents/skill-sync-report.json`）
+3. **向用户汇报**结果（脚本输出的控制台摘要可直接转述）
+4. **处理脚本标注的异常**（见「异常处理」节，通常只需转告用户）
 
-**核心原则**：所有 shell 命令设严格超时（15-30s），超时后 agent 用自己的工具降级执行，不允许长时间无响应。
-
----
-
-## 工作流程概述
-
-```
-步骤⓪ 自更新（先更新 skill-install-manager 自身）
-     │  ├─ npx skills update 15s → 成功则跳过
-     │  └─ 失败 → npx skills add 降级
-     │
-     ▼
-步骤① 读取列表文件（从更新后的列表文件读取）
-     │
-     ▼
-步骤② 新旧列表对比（更新前记录旧列表摘要，更新后对比标记新增技能）
-     │
-     ▼
-步骤③ 解析列表（agent 在推理中解析，或调用 compare-skills.js 做格式化）
-     │
-     ▼
-步骤④ 获取安装状态（agent 直接运行 npx skills ls + read_file 读锁文件）
-     │
-     ▼
-步骤⑤ 对比分析（agent 逐一对比，每仓库 git ls-remote 15s 超时，同仓库共享一次查询）
-     │     ├─ 成功 → 标记 outdated/upToDate
-     │     └─ 超时 → web_fetch GitHub API 降级 → 标记 unknown
-     │
-     ▼
-步骤⑤.5 依赖预检（新！安装/更新前检查前置技能是否已装，缺失的加入安装队列并优先安装）
-     │
-     ▼
-步骤⑥ 执行安装/更新
-     │  ├─ 安装顺序：前置依赖 → 新增 → 缺失 → 更新
-     │  ├─ 已安装技能：npx skills update → add → SSH → 手动
-     │  ├─ 未安装技能：npx skills add → SSH → 手动（不变）
-     │  └─ 新增技能：标记为待安装
-     │
-     ▼
-步骤⑦ 生成报告（agent 直接格式化输出，含依赖处理说明）
-```
+| 脚本 | 职责 | 何时用 |
+|------|------|--------|
+| `scripts/sync-skills.js` | **主编排**：自更新→读列表→对比→依赖→安装→报告，全自动 | 默认入口，覆盖 99% 场景 |
+| `scripts/install-skill.js` | 单技能安装（五通道回退） | 只装/只更一个技能时 |
+| `scripts/compare-skills.js` | 只对比不安装（兼容旧入口，转发到 sync --compare） | 只想看差异时 |
+| `scripts/utils.js` | 共享工具模块 | 被以上脚本引用，不直接调用 |
 
 ---
 
-## 详细执行步骤
+## 快速开始
 
-### 步骤⓪：自更新（更新 skill-install-manager 自身）
+### 🟢 一键同步（默认，最常用）
 
-在开始处理技能列表之前，**先更新 skill-install-manager 自身到最新版本**。这样可以确保技能列表文件是最新的，包含所有新增技能。
-
-#### 执行流程
-
-1. **读取旧列表摘要**：在执行更新前，先读取当前技能列表文件 `references/Reasonix-skill-list-v2.md`，记录所有技能名称集合作为「旧列表摘要」。
-
-2. **尝试方式 A — `npx skills update`（15s 超时）**：
-   ```powershell
-   npx skills update skill-install-manager -g -y
-   ```
-   - 成功（15s 内返回）→ ✅ 自更新成功，跳到步骤 3
-   - 超时或失败 → 降级到方式 B
-
-3. **尝试方式 B — `npx skills add` HTTPS（30s 超时）**：
-   ```powershell
-   npx skills add https://github.com/MarecGents/marec-agent-skills --skill skill-install-manager -g -a reasonix -y
-   ```
-   - 成功 → ✅ 自更新成功 (add)
-   - 超时 → 降级到方式 C
-
-4. **尝试方式 C — `npx skills add` SSH（30s 超时）**：
-   ```powershell
-   npx skills add git@github.com:MarecGents/marec-agent-skills.git --skill skill-install-manager -g -a reasonix -y
-   ```
-   - 成功 → ✅ 自更新成功 (ssh)
-   - 超时 → 降级到方式 D
-
-5. **尝试方式 D — 手动下载**（参照步骤⑥的方式 C）：
-   直接从 GitHub 下载 skill-install-manager 的最新文件，覆盖本地安装。
-
-6. **更新完成后读取新列表**：重新读取 `references/Reasonix-skill-list-v2.md`，记录最新内容以供后续步骤使用。
-
-> **注意**：如果所有更新方式都失败，不阻塞后续流程——使用当前的旧版本继续执行。记录失败原因到最终报告中。
-
-**进度报告**：⏫ 自更新：成功/失败（方式X）
-
----
-
-### 步骤①：确定技能列表文件路径
-
-1. 检查用户是否在任务中明确指定了文件路径。如果是，直接使用。
-2. 如果用户未指定，按以下优先级查找默认路径：
-   - `./skill-list.md`（当前工作目录）
-   - `./skills/skill-list.md`
-   - `./sandbox/dev/skill-list.md`
-   - `references/Reasonix-skill-list-v2.md`（Skill 内置列表文件）
-3. 使用 `read_file` 工具读取文件内容。如果文件不存在，向下查找下一优先级。
-4. 如果所有路径都不存在，询问用户提供文件路径。
-
-### 步骤②：新旧列表对比
-
-自更新完成后，将更新后的技能列表与更新前记录的「旧列表摘要」进行对比。
-
-1. 比较新旧列表的技能名称集合：
-   - 找出「新列表有、旧列表没有」的技能 → 标记为 **🆕 新增技能**
-   - 找出「旧列表有、新列表没有」的技能 → 标记为 **🗑️ 已移除技能**（保留已安装的，不卸载）
-   - 两个列表都有的技能 → 标记为 **➡️ 延续技能**
-
-2. 对 **🆕 新增技能** 的特殊处理：
-   - 在后续步骤⑤（对比分析）中，跳过版本检查（因为是全新的），直接标记为 **missing（待安装）**
-   - 在后续步骤⑥（执行安装）中，优先安装这些新增技能
-
-3. 输出对比结果：
-   ```
-   📋 技能列表变更：
-      🆕 新增: xxx-skill, yyy-skill (N 个)
-      🗑️ 移除: zzz-skill (N 个) — 不影响已安装
-      ➡️ 延续: M 个
-   ```
-
-> **注意**：如果自更新失败（使用旧版本），新旧列表对比的结果为空（无变化），直接跳过此步骤。
-
-### 步骤③：解析列表文件
-
-**agent 直行（主路径）**：在推理中直接解析文件内容
-
-每行按以下规则处理：
-- 以 `## Origin URL:` 开头的行 → 提取 URL，开始一个新的来源节
-- 以 `N. <skill-name>: npx skills add ...` 格式的行 → 提取技能名称和安装命令
-- 以 `N. <skill-name>` 格式的行（无安装命令）→ 提取名称，标记 installCmd=null
-- 空白行或非匹配行 → 跳过
-
-解析结果存入一个临时结构，格式如下：
-```
-来源 1: https://github.com/owner/repo
-  ├── skill-a  → npx skills add ...
-  ├── skill-b  → npx skills add ...
-来源 2: https://github.com/another/repo
-  ├── skill-c  → npx skills add ...
-```
-
-> 🔵 **JS 脚本辅助**：如需输出结构化 JSON，可运行以下脚本（可选，非必须）：
-> ```powershell
-> node "<skill-path>\scripts\compare-skills.js" --parse-only --list "<list-file>"
-> ```
-
-**进度报告**：✅ 解析完成：N 个来源，M 个技能
-
-### 步骤④：获取当前全局安装状态
-
-**agent 直行（主路径）**：
-
-1. 运行以下命令获取全局安装列表：
-   ```powershell
-   npx skills ls -g --json
-   ```
-   如果命令在 15s 内无响应（卡住），按 Ctrl+C 终止并跳过（标记为"安装列表获取失败"）。
-
-2. 读取锁文件获取版本信息：
-   ```powershell
-   Get-Content "$env:USERPROFILE\.agents\.skill-lock.json" | ConvertFrom-Json
-   ```
-   或者用 MCP `read_file` 工具直接读取 `~/.agents/.skill-lock.json`。
-
-3. 提取每个已安装技能的：
-   - `name` — 技能名称
-   - `agents` — 已安装的 agent 列表
-   - `skillFolderHash` — 安装时的 git commit SHA（用于版本对比）
-   - `sourceUrl` / `skillPath` — 来源信息
-
-**进度报告**：✅ 已读取全局安装状态：N 个已安装技能
-
-### 步骤⑤：对比分析
-
-**agent 直行（主路径）** — 在推理中逐一对比，每步报告进度：
-
-#### 5.1 按来源分组处理
-
-将步骤③解析的 origins 列表按 URL 分组，同一仓库的技能一起处理。
-
-#### 5.2 逐仓库版本检查
-
-对每个来源仓库（**同一仓库只查一次**，仓库内多个技能共享查询结果，避免重复网络请求）：
-
-```
-正在检查: [仓库名称] (N 个技能)...
-```
-
-**方式 A（优先）— `git ls-remote` 快速检查**：
 ```powershell
-$job = Start-Job -ScriptBlock { git ls-remote https://github.com/{owner}/{repo}.git HEAD }
-$result = $job | Wait-Job -Timeout 15
-if ($result) {
-    $sha = (Receive-Job $job).Trim().Split()[0]
-    Remove-Job $job
-} else {
-    Stop-Job $job; Remove-Job $job
-    # 降级到方式 B
-}
-```
-- 成功（15s 内返回）→ 提取 SHA，与锁文件对比 → 标记 outdated/upToDate
-- **超时（15s 无响应）→ 降级到方式 B**
-
-**方式 B（降级）— `web_fetch` GitHub API 查询**：
-```
-web_fetch: https://api.github.com/repos/{owner}/{repo}/commits?per_page=1
-```
-- 成功 → 从返回的 JSON 中提取 latest_commit.sha
-- 失败 → 标记为"状态未知（网络不可达）"
-
-#### 5.3 分类汇总
-
-每处理完一个仓库，实时输出进度（同一仓库的技能共享同一次 commit 查询，结果一致）：
-
-```
-📦 anthropics/skills (7 skills):
-   ✅ 仓库最新 commit 9d2f1a...（1 次查询，7 个技能共享）
-   ✅ skill-creator → 可更新 (hash: 7e3c9c... → 9d2f1a...)
-📦 obra/superpowers (2 skills): 
-   ⚠️  git ls-remote 超时 → web_fetch 降级 → 最新 commit d884ae...
-   ✅ brainstorming → 可更新
-   ✅ systematic-debugging → 已最新
-   ... (等)
+node "<skill-path>\scripts\sync-skills.js"
 ```
 
-### 步骤⑤.5：依赖预检（安装/更新前）
+全自动完成：自更新 → 读取最新列表 → 对比安装状态 → 版本检查（并发+缓存）→
+依赖预检 → 安装/更新（五通道回退）→ 生成报告。
 
-在执行安装/更新之前，**先检查待处理技能（missing / 🆕 / outdated）的前置依赖是否已安装**，避免装上技能后因缺少前置技能而无法工作。
+**Agent 操作步骤：**
 
-#### 5.5.1 判定依据
+1. 确认技能包路径（`pwd` 后定位 `skill-install-manager/scripts/`，路径大小写敏感）
+2. 运行上面的命令（超时 10 分钟；脚本内部有逐级超时与降级，不会无限卡住）
+3. 读取 `~/.agents/skill-sync-report.json`，向用户汇报摘要
+4. 若报告中有 ❌ 失败项或 ⚠️ 依赖警告，如实转告用户并给出建议
 
-按以下优先级查找技能的前置依赖声明（只要命中任一来源即可）：
-1. **列表文件标注**：如果 `Reasonix-skill-list-v2.md` 中某技能名出现在另一技能条目附近且有依赖说明，直接采用
-2. **技能自身元数据**：读取待安装技能 `SKILL.md` 的 frontmatter，检查 `related_skills`、`dependencies`、`requires` 字段
-3. **已知依赖模式**（无需联网，直接内置判断）：
-   - `default` → 依赖 `brainstorming`、`planning-with-files-zh`、`skill-standard-harness`
-   - `github-project-replication` → 依赖 `brainstorming`、`planning-with-files-zh`、`skill-standard-harness`
-   - `academic-pipeline` → 依赖 `academic-paper`、`academic-paper-reviewer`、`deep-research`
-   - `ieee-mg-writing` / `ieee-mg-polishing` / `ieee-mg-reviewer` → 依赖 `ieee-mg-share`
-   - `nature-*` 系列 → 依赖 `nature-shared`（或同源 `_shared`）
-   - `grill-me` → 依赖 `grilling`（同一仓库，必须一并安装）
-   - `zh-quotes` → 依赖 `docx`（作为 docx 的子技能）
-   - `pptx` → 文本提取需要 `markitdown`（pip 包，如列表含 markitdown 技能则一并安装）
-   - `researchwrite` → 依赖 `brainstorming`、`docx`（`professor`/`avoid-ai-writing` 为设计灵感，非运行依赖，不入列）
+### 🔵 只对比不安装
 
-#### 5.5.2 处理流程
-
-1. 对每个待处理技能，解析出前置依赖技能集合
-2. 与「当前已安装列表」（步骤④结果）对比：
-   - **前置已安装** → 无需处理，继续
-   - **前置未安装** → 将前置技能加入**安装队列**（记入 `pendingDeps`），并标注来源技能
-3. **依赖入列规则**：
-   - 前置技能若已存在于列表文件（有 installCmd）→ 直接加入安装队列
-   - 前置技能不在列表文件 → 报告给用户，询问是否将该前置技能的安装命令补充进列表文件后再安装
-   - 同一仓库的前置技能（如 grill-me → grilling）→ 优先同仓库安装，减少网络请求
-4. 输出依赖预检结果：
-
-```
-🔗 依赖预检:
-   grill-me → 依赖 grilling（同仓库，已加入安装队列）
-   default → 依赖 brainstorming/planning-with-files-zh/skill-standard-harness（均已安装 ✅）
-   ieee-mg-writing → 依赖 ieee-mg-share（已安装 ✅）
-```
-
-### 步骤⑥：执行安装/更新
-
-对 missing（缺失）、outdated（可更新）和 🆕 新增技能，按以下规则安装或更新：
-
-#### 6.1 判断技能状态
-
-根据技能的状态选择安装方式：
-
-| 状态 | 安装方式 |
-|------|---------|
-| **missing**（未安装） | `npx skills add` → SSH → 手动下载 |
-| **outdated**（已安装可更新） | `npx skills update` → `npx skills add` → SSH → 手动下载 |
-| **🆕 新增**（列表新增） | 等同 missing，标记为待安装 |
-| **pendingDeps**（依赖预检入列） | 等同 missing，但**优先于其他所有状态安装** |
-
-> **Agent 参数统一（白名单）**：所有 `npx skills add` 命令统一使用 `-a reasonix -a claude-code -a opencode -a codex`（四个 Agent 全量安装，**agent 名全部小写连字符**：`reasonix`、`claude-code`、`opencode`、`codex`）。**不安装 GitHub Copilot（`github-copilot`）与 Kimi Code CLI（`kimi-code-cli`）**——这是本机确定的安装白名单，任何安装/更新命令不得包含这两个 agent。若某些 Agent 未安装导致报错，可回退到 `-a reasonix` 单 Agent。
-
----
-
-#### 6.2 对 missing / 🆕 新增技能：执行安装
-
-```
-正在安装: [skill-name] (来源: [origin-url])...
-```
-
-**尝试 A — HTTPS 安装（30s 超时）**：
 ```powershell
-$job = Start-Job -ScriptBlock { npx skills add "{url}" --skill "{name}" -g -a reasonix -a claude-code -a opencode -a codex -y }
-$result = $job | Wait-Job -Timeout 30
-if ($result) {
-    $output = Receive-Job $job
-    Remove-Job $job
-    # 安装成功 → ✅
-} else {
-    Stop-Job $job; Remove-Job $job
-    # 超时 → 降级到尝试 B
-}
+node "<skill-path>\scripts\sync-skills.js" --compare --list "<list-file>"
 ```
-- 成功（30s 内返回）→ ✅ 记录成功
-- **超时（30s 无响应）→ 降级到尝试 B**
 
-**尝试 B（降级）— SSH 安装（30s 超时）**：
-```
-URL 转换: https://github.com/owner/repo → git@github.com:owner/repo.git
-```
+### 🟣 安装单个技能
+
 ```powershell
-$job = Start-Job -ScriptBlock { npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reasonix -y }
-$result = $job | Wait-Job -Timeout 30
-```
-- 成功 → ✅ (ssh) 记录成功
-- **超时 → 降级到尝试 C**
-
-**尝试 C（最终降级）— agent 直接手动下载安装**：
-
-当 `npx skills add` 完全不可用时，agent 用自己的工具完成安装：
-
-1. **获取仓库默认分支**：
-   ```
-   web_fetch: https://api.github.com/repos/{owner}/{repo}
-   ```   
-   提取 `default_branch`（通常为 main 或 master）
-
-2. **获取文件树，定位 skill 目录**：
-   ```
-   web_fetch: https://api.github.com/repos/{owner}/{repo}/git/trees/{default_branch}?recursive=1
-   ```
-   在文件树中查找包含技能名称的路径，确定基础路径。
-
-3. **逐个下载所有文件**：
-   对基础路径下的每个 blob 文件：
-   ```
-   web_fetch: https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{filepath}
-   ```
-   将内容写入 `~/.agents/skills/{skill-name}/{relative-path}`。
-   - 使用 `bash`（`New-Item` + `Set-Content`）或 MCP Filesystem `write_file` 写入
-
-4. **更新锁文件**：
-   ```powershell
-   $lock = Get-Content "$env:USERPROFILE\.agents\.skill-lock.json" | ConvertFrom-Json
-   $lock.skills."{name}" = @{
-       source = "{owner}/{repo}"
-       sourceType = "github"
-       sourceUrl = "https://github.com/{owner}/{repo}.git"
-       skillPath = "{base-path}"
-       skillFolderHash = "{tree-sha}"
-       installedAt = (Get-Date -Format o)
-       updatedAt = (Get-Date -Format o)
-   }
-   $lock | ConvertTo-Json -Depth 10 | Set-Content "$env:USERPROFILE\.agents\.skill-lock.json"
-   ```
-
-5. **注册 skill（可选）**：
-   手动安装后，如果有 `npx skills` 可用，运行：
-   ```powershell
-   npx skills experimental_sync -y
-   ```
-   如果 `npx skills` 仍不可用，告知用户 skill 文件已写入但需手动注册。
-
----
-
-#### 6.3 对 outdated（已安装可更新）技能：执行更新
-
-对于已安装且可更新的技能，**优先使用 `npx skills update`**，而不是重新 add。
-
-```
-正在更新: [skill-name]...
-```
-
-**尝试 A（优先）— `npx skills update`（15s 超时）**：
-```powershell
-npx skills update {name} -g -y
-```
-- 成功（15s 内返回）→ ✅ 记录成功（update）
-- **超时或失败 → 降级到尝试 B**
-
-**尝试 B — `npx skills add` HTTPS（30s 超时）**：
-```powershell
-npx skills add "{url}" --skill "{name}" -g -a reasonix -y
-```
-- 成功 → ✅ 记录成功（add）
-- **超时 → 降级到尝试 C**
-
-**尝试 C — SSH 安装（30s 超时）**：
-```
-URL 转换: https://github.com/owner/repo → git@github.com:owner/repo.git
-```
-```powershell
-npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reasonix -y
-```
-- 成功 → ✅ 记录成功（ssh）
-- **超时 → 降级到尝试 D**
-
-**尝试 D — 手动下载**（同 6.2 尝试 C 的流程）
-
----
-
-#### 6.4 安装顺序
-
-按以下优先级安装（**依赖优先**，确保前置技能先就位）：
-
-1. 🔗 **pendingDeps 前置依赖技能**（最先安装，其他技能的前置必须先装好）
-2. 🆕 **新增技能**（其次安装，确保新技能尽快就位）
-3. ❌ **缺失技能**（再次安装）
-4. 🔄 **可更新技能**（最后更新）
-
-同仓库的技能尽量连续处理（共享一次 `git ls-remote` 与 clone 缓存），减少网络请求。依赖技能的安装失败**不阻塞**依赖方安装，但在最终报告中明确标注依赖未满足。
-
-### 步骤⑦：生成报告
-
-**agent 直行（主路径）** — 直接格式化输出：
-
-```
-╔════════════════════════════════════════════╗
-║        Skill 安装/更新报告                  ║
-╚════════════════════════════════════════════╝
-
-📊 汇总:
-   总计     : 36 个技能
-   已安装   : 36 个
-   缺失     : 0 个
-   可更新   : 5 个（已更新: 3, 失败: 2）
-   已最新   : 28 个
-   状态未知 : 3 个
-   依赖补齐 : 1 个（grilling，因 grill-me 依赖而入列）
-
-🔗 依赖处理:
-   ✅ grill-me → grilling（已一并安装）
-   ✅ ieee-mg-writing → ieee-mg-share（已安装）
-   ❌ pptx → markitdown（pip 包，需手动 pip install "markitdown[pptx]"）
-
-📦 anthropics/skills:
-   ✅ skill-creator → 已更新 (HTTPS)
-
-📦 imbad0202/academic-research-skills:
-   ✅ academic-paper → 已更新 (SSH 降级)
-   ❌ academic-pipeline → 更新失败: 手动下载超时
-
-📦 MarecGents/marec-agent-skills:
-   ⏭️  check-reasonix-update → 状态未知（锁文件数据缺失）
+node "<skill-path>\scripts\install-skill.js" --name <skill-name> --url <origin-url>
 ```
 
 ---
 
-## JS 辅助脚本（可选）
+## 主编排脚本参数（sync-skills.js）
 
-本技能附带 JS 脚本作为可选辅助工具，非核心工作流依赖：
+| 参数 | 说明 | 默认 |
+|------|------|------|
+| `--list <path>` | 技能列表文件路径 | 自动查找（见下） |
+| `--no-self-update` | 跳过自更新 | 开启自更新 |
+| `--cdn-first` | CDN 优先（codeload/jsDelivr 在 npx add 之前） | 官方优先 |
+| `--dry-run` | 演练模式：只打印将执行的命令，不真正安装 | 关闭 |
+| `--concurrency <n>` | 仓库级安装并发数 | 3 |
+| `--agents <a,b,c>` | 安装到的 Agent 列表 | `reasonix,claude-code,opencode,codex` |
+| `--lock <path>` | 锁文件路径 | `~/.agents/.skill-lock.json` |
+| `--report <path>` | 报告输出路径 | `~/.agents/skill-sync-report.json` |
+| `--cache-ttl <min>` | 远端 commit 缓存 TTL | 360 分钟（6 小时） |
+| `--compare` | 只对比不安装（输出 JSON） | 关闭 |
+| `--only <name1,name2>` | 只处理指定技能 | 全部 |
+| `--skip-deps` | 跳过依赖预检 | 执行依赖预检 |
 
-| 脚本 | 用途 | 触发方式 |
-|------|------|---------|
-| `scripts/utils.js` | 共享工具模块 | 被其他脚本引用 |
-| `scripts/compare-skills.js` | 快速输出结构化 JSON | `node "<path>\scripts\compare-skills.js" --list "<file>"` |
-| `scripts/install-skill.js` | 批量安装带三级回退 | `node "<path>\scripts\install-skill.js" --name "<name>" --url "<url>"` |
+### 列表文件查找顺序（未指定 `--list` 时）
 
-**使用场景**：当需要快速获取格式化 JSON 输出（如集成到其他工具链）时使用。日常工作流中推荐使用 agent 直行模式。
+1. `./skill-list.md`（当前工作目录）
+2. `./skills/skill-list.md`
+3. `./sandbox/dev/skill-list.md`
+4. `<skill-path>\references\Reasonix-skill-list-v2.md`（技能内置列表，默认兜底）
 
 ---
 
-## 参考文件
+## 脚本内部流程（agent 无需手动执行，仅作理解）
 
-- `references/Reasonix-skill-list-v2.md` — 内置的技能列表文件，包含所有 Origin URL 及对应 Skills
-- `references/skill-list-format.md` — 技能列表文件的格式说明
+```
+⓪ 自更新 skill-install-manager 自身（update → add → codeload zip 三级）
+      │
+      ▼
+① 定位并读取技能列表文件
+      │
+      ▼
+② 新旧列表对比（自更新后标记 🆕新增 / 🗑️移除 / ➡️延续）
+      │
+      ▼
+③ 解析列表（utils.parseSkillList，兼容注释行/重复 origin/_shared 条目）
+      │
+      ▼
+④ 获取全局安装状态（npx skills ls -g --json → 锁文件兜底）
+      │
+      ▼
+⑤ 版本对比（每仓库只查一次：缓存 → git ls-remote 15s → GitHub API 兜底，
+   并发 4；40 位 hash 差异用 isRealCommit 校验，避免误报 outdated）
+      │
+      ▼
+⑤.5 依赖预检（内置依赖表 + dependencies.local.json 覆盖）
+      │
+      ▼
+⑥ 执行安装/更新（pendingDeps → 🆕 → missing → outdated；
+   同仓库技能共享一次下载，仓库级并发 3，五通道回退）
+      │
+      ▼
+⑦ 生成 JSON 报告（~/.agents/skill-sync-report.json）+ 控制台摘要
+```
+
+### 安装通道链（脚本自动逐级降级，无需 agent 干预）
+
+| 优先级 | 通道 | 说明 |
+|--------|------|------|
+| 0 | `npx skills update` | 已安装技能优先增量更新 |
+| 1 | `npx skills add` HTTPS | 官方通道，整仓 shallow clone（--depth=1） |
+| 2 | `npx skills add` SSH | HTTPS 失败降级 |
+| 3 | **codeload tarball zip** | 一次 HTTP 下载整仓 zip → 解压 → `npx skills add <本地目录>`（无需 git 协议，通常比 clone 快） |
+| 4 | **jsDelivr CDN 逐文件** | `data.jsdelivr.com` 文件树 + `cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/` 并发下载，只取所需技能目录（单文件上限 20MB，技能文件均远小于此） |
+| 5 | GitHub API 逐文件 | 最后兜底（未认证限流 60 次/h，慎用） |
+
+- `--cdn-first` 时顺序变为：3 → 4 → 1 → 2 → 5
+- 安装成功后脚本**回写锁文件**（`sourceUrl` 统一为 GitHub URL、`skillFolderHash` 为最新 commit SHA），保证下次对比一致、后续 `npx skills update` 可正常定位源
+- 网络极差时脚本自动多级降级；全部通道失败才标记 ❌，不阻塞其他技能
+
+### 版本对比与缓存
+
+- 每个来源仓库**只查一次** commit SHA，同仓库多技能共享结果
+- `~/.agents/.skill-remote-cache.json` 缓存 commit SHA，默认 TTL 6 小时（`--cache-ttl` 可调），重复运行几乎秒出
+- 对比基准：`git ls-remote HEAD` → 失败 `api.github.com/repos/{owner}/{repo}/commits` 兜底
+- **jsDelivr 不提供 commit SHA，只用于下载，不参与版本对比**
+
+### 依赖预检
+
+脚本内置依赖表（default→brainstorming 等，原 SKILL.md 5.5.1 表已迁入脚本）+ 可选覆盖文件：
+
+```
+<script-path>\scripts\dependencies.local.json
+```
+
+格式：`{ "skill-name": ["dep1", "dep2"] }` 或 `{ "skill-name": "dep1,dep2" }`。
+预检逻辑：未安装的前置依赖自动加入安装队列并**优先安装**；依赖不在列表文件中时
+只在报告里提示 ⚠️（不阻塞）。
+
+---
+
+## 异常处理（agent 的兜底职责）
+
+| 报告状态 | Agent 处理 |
+|---------|-----------|
+| ❌ 技能安装失败（五通道均失败） | 转告用户具体原因（网络？仓库不存在？技能名不匹配？），建议手动 `npx skills add <url> --skill <name>` 或检查网络/代理 |
+| ⚠️ 依赖不在列表中 | 转告用户，询问是否将依赖安装命令补充进列表文件后重跑 |
+| 🔶 状态未知（锁文件缺 hash / 网络不可达） | 多数可通过再跑一次 `npx skills update <name> -g -y` 刷新锁记录解决；报告中有 refreshHint |
+| 脚本本身报错 | 先看 stderr 的 `[ERROR]`/`[FATAL]` 行；Node 版本需 ≥18；确认 git、npx skills 可用 |
+| 需要代理的环境 | 设置环境变量后重跑：`GITHUB_TOKEN`（GitHub API 认证，限流 5000/h）、`SKILLS_CLONE_TIMEOUT_MS`（clone 超时）、HTTP(S)_PROXY（如需代理） |
+
+**三次失败协议**：同一技能连续 3 次安装失败 → 停止自动重试，向用户说明尝试过
+的通道与具体错误，请求指导（如检查网络代理、仓库是否私有）。
+
+---
+
+## 注意事项
+
+1. **Agent 名白名单（大小写敏感）**：必须用小写连字符 `reasonix` / `claude-code` /
+   `opencode` / `codex`。**不安装** `github-copilot` 与 `kimi-code-cli`。脚本默认
+   已按白名单配置，`--agents` 可覆盖。
+2. **路径大小写**：`MarecGents` 等路径大小写敏感，务必用 `pwd` 确认准确路径。
+3. **jsDelivr 限制**：单文件上限 20MB（技能文件通常 <1MB，安全）；官方无打包端点，
+   只能逐文件，故 jsDelivr 通道定位为兜底而非主通道。
+4. **GitHub API 限流**：未认证 60 次/h（按 IP）。脚本只在 git ls-remote 失败时才
+   调用 API，且默认有缓存，通常不会触限；如遇 403/429 请设置 `GITHUB_TOKEN`。
+5. **codeload 二级限流**：频繁下载可能触发 429 + Retry-After，脚本已有重试与退避；
+   大批量安装建议错峰或使用 `--cache-ttl` 减少重复请求。
+6. **锁文件**：`~/.agents/.skill-lock.json`（v3）。脚本安装后回写
+   `sourceUrl`/`skillFolderHash`，保证与 git commit SHA 对比一致。
+7. **超时设计**：脚本内所有命令带超时（git ls-remote 15s、npx update 30s、
+   npx add 60s、下载 60-120s），逐级降级，不会无限卡住；整体建议 agent 侧给
+   10 分钟运行窗口。
+8. **报告**：`~/.agents/skill-sync-report.json` 为机器可读完整报告（含每个技能的
+   状态、通道、原因），控制台摘要为人读概览；agent 汇报以报告为准。
 
 ---
 
@@ -514,66 +222,36 @@ npx skills add "git@github.com:{owner}/{repo}.git" --skill "{name}" -g -a reason
 
 > 用户：帮我同步一下技能
 
-执行流程：
-0. **自更新**：`npx skills update skill-install-manager -g -y` → 成功，获取新版列表
-1. 读取更新后的内置列表文件 `references/Reasonix-skill-list-v2.md`
-2. **新旧对比**：对比旧摘要，发现新增 2 个技能 → 标记 🆕
-3. agent 解析：7 个来源，38 个技能
-4. `npx skills ls -g --json` → 读取安装状态
-5. 逐仓库 `git ls-remote` 对比版本（设 15s 超时）
-   - anthropics/skills → 成功，skill-creator 可更新
-   - Yuan1z0825/nature-skills → 超时，web_fetch 降级成功
-6. 执行安装/更新：
-   - 🆕 新增技能 → `npx skills add` 安装
-   - outdated 技能 → `npx skills update` 优先更新
-7. 输出报告
+```powershell
+node "<skill-path>\scripts\sync-skills.js"
+```
 
-**示例 2：安装特定技能**
+脚本自动：自更新 → 读最新列表 → 对比 → 依赖预检 → 安装/更新 → 报告。
+Agent 读 `~/.agents/skill-sync-report.json` 汇报：`总计 N | 缺失 X | 可更新 Y | 已最新 Z | 失败 F`。
 
-> 用户：帮我安装 xx-skill，列表在 ./my-list.md
+**示例 2：只想看差异**
 
-执行流程：
-1. 读取 `./my-list.md`
-2. 解析找到 xx-skill 及其来源 URL
-3. 检查是否已安装 → 未安装
-4. `npx skills add <url> --skill xx-skill -g -a reasonix -y`（30s 超时）
-5. 成功 → ✅ 输出报告
+```powershell
+node "<skill-path>\scripts\sync-skills.js" --compare
+```
 
-**示例 3：已安装技能更新**
+**示例 3：网络环境差（CDN 优先 + 演练）**
 
-> 用户：把已安装的技能都更新到最新
+```powershell
+node "<skill-path>\scripts\sync-skills.js" --cdn-first --dry-run   # 先看将执行什么
+node "<skill-path>\scripts\sync-skills.js" --cdn-first             # 正式执行
+```
 
-执行流程：
-0. 自更新 skill-install-manager → 获取最新技能列表
-1. 读取列表文件
-2. 获取全局安装状态
-3. 对比分析 → 找出 outdated 技能
-4. 对每个 outdated 技能：
-   - `npx skills update <name> -g -y`（15s 超时）→ 成功 ✅
-   - 失败则降级 `npx skills add`
-5. 输出更新报告
+**示例 4：安装特定技能**
 
-**示例 4：完全离线安装（npx 不可用）**
+```powershell
+node "<skill-path>\scripts\install-skill.js" --name xx-skill --url <origin-url>
+```
 
-1. 解析列表，确定需要安装的技能列表
-2. 对所有技能，直接走手动下载流程
-3. `web_fetch` GitHub API → 获取文件树
-4. `web_fetch` raw 内容 → 写入 `~/.agents/skills/`
-5. 更新锁文件
-6. 告知用户文件已就位
+**示例 5：完全离线/受限网络（npx 不可用）**
 
----
-
-## 注意事项
-
-1. **超时设计**：所有 shell 命令使用 `Start-Job` + `Wait-Job -Timeout` 控制超时，避免长时间卡住。`git ls-remote` 15s 超时，`npx skills update` 15s 超时，`npx skills add` 30s 超时。
-2. **降级路径**：每步都有明确的降级路径：shell 超时 → web_fetch 降级 → 手动文件操作。不允许失败后无反馈。
-3. **进度可见**：每处理完一个仓库/技能，必须输出进度标记（`✅`/`⚠️`/`❌`），不能长时间静默。
-4. **网络环境**：GitHub API（`api.github.com`）和 raw 文件（`raw.githubusercontent.com`）可能需要代理。如果所有方式都失败，向用户报告具体情况。
-5. **文件路径**：Windows 路径中的反斜杠需要用双引号包裹，或在 PowerShell 中使用单引号。
-6. **`skillFolderHash`**：这是 `.skill-lock.json` 中记录的安装时刻的 git commit SHA（**40 位十六进制**）。如果锁文件中缺少此字段，技能会被标记为"状态未知"，agent 会尝试通过 `web_fetch` GitHub API 获取远程版本作为参考。**旧版安装器（v2.2 前）可能写入 64 位 blob/tree SHA**——此类记录无法与 `git ls-remote` 的 commit SHA 对比，compare-skills.js 会将其归入 `unknown`（带 `refreshHint`）而非误报 `outdated`；执行 `npx skills update` 刷新锁记录后可恢复对比。
-7. **`skippable` 分类**：列表中的特殊条目（如 `_shared` 共享资源目录）没有安装命令，跳过不处理。
-8. **`npx skills update` 优先**：对于已安装的技能，**优先使用 `npx skills update <skill-name> -g -y`**（15s 超时），而不是重新 add。这比 `npx skills add` 更快（只更新已安装的技能，无需重新克隆整个仓库），且不会重复复制文件。仅当 update 失败时，才降级到 add。
-9. **依赖预检必做**：步骤⑤.5 的依赖预检**不可跳过**。凡是安装/更新缺失或新增技能，必须先检查其前置依赖；依赖未安装会导致技能装上但不可用（如只有 grill-me 没有 grilling）。
-10. **路径大小写**：`MarecGents` 等路径大小写敏感，务必使用 `pwd` 确认的准确路径。
-11. **Agent 名称大小写与白名单**：`npx skills add` 的 `-a` 参数中 agent 名称大小写敏感，且必须使用**小写连字符形式**。Reasonix 为 `reasonix`、Claude Code 为 `claude-code`、OpenCode 为 `opencode`、Codex 为 `codex`。使用展示名（`Reasonix` / `Claude Code` / `OpenCode`）会报 `Invalid agents` 错误。**本机安装白名单仅限以上 4 个 agent**——不要安装 `github-copilot`（GitHub Copilot）与 `kimi-code-cli`（Kimi Code CLI）。
+1. 运行 `sync-skills.js --compare` 确定缺失技能
+2. 逐技能手动安装：`install-skill.js` 的 jsDelivr/GitHub API 通道会直接写文件
+   `~/.agents/skills/<name>` 并回写锁
+3. 若 `npx skills` 完全不可用，脚本会提示文件已就位、需手动注册
+   （`npx skills experimental_sync -y` 或告知用户）

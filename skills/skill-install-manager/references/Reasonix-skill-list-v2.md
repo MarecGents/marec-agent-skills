@@ -333,3 +333,15 @@ Skill Name and install command
 34. marketplace-publishing: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill marketplace-publishing
 35. r3-reactive-extensions: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill r3-reactive-extensions
 36. skills-index-snippets: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill skills-index-snippets
+
+## Origin URL: https://github.com/hugohe3/ppt-master
+
+Skill Name and install command
+
+1. ppt-master: npx skills add https://github.com/hugohe3/ppt-master --skill ppt-master
+
+## Origin URL: https://github.com/Agents365-ai/drawio-skill
+
+Skill Name and install command
+
+1. drawio-skill: npx skills add https://github.com/Agents365-ai/drawio-skill --skill drawio-skill

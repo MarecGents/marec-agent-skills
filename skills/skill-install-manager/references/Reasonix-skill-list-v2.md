@@ -112,6 +112,7 @@ Skill Name and install command
 2. ieee-mg-polishing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-polishing
 3. ieee-mg-reviewer: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-reviewer
 4. ieee-mg-writing: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-writing
+5. ieee-mg-response: npx skills add https://github.com/MarecGents/ieee-mg-skills --skill ieee-mg-response
 
 ## Origin URL: https://github.com/mattpocock/skills
 
@@ -181,7 +182,6 @@ Skill Name and install command
 
 Skill Name and install command
 
-# 注：技能实际名为 CLI 发现的 frontmatter 名（2026-08-26 实测），非目录名
 1. setting-up-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill setting-up-python-libraries
 2. improving-python-code-quality: npx skills add https://github.com/wdm0006/python-skills --skill improving-python-code-quality
 3. testing-python-libraries: npx skills add https://github.com/wdm0006/python-skills --skill testing-python-libraries
@@ -223,7 +223,6 @@ Skill Name and install command
 
 Skill Name and install command
 
-# 注：其中 5 个（react-best-practices / composition-patterns / react-view-transitions / react-native-skills / writing-guidelines）CLI 无法发现（frontmatter name 异常），已手动安装（Tier C 下载到 ~/.agents/skills/），不适用 npx skills add
 1. react-best-practices: npx skills add https://github.com/vercel-labs/agent-skills --skill react-best-practices
 2. web-design-guidelines: npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
 3. composition-patterns: npx skills add https://github.com/vercel-labs/agent-skills --skill composition-patterns
@@ -254,49 +253,40 @@ Skill Name and install command
 
 Skill Name and install command
 
-# --- 插件 dotnet（核心,1 个）---
 1. setup-local-sdk: npx skills add https://github.com/dotnet/skills --skill setup-local-sdk
-
-# --- 插件 dotnet-data（EF Core/数据,2 个）---
-1. create-datadriven-aspnetcore: npx skills add https://github.com/dotnet/skills --skill create-datadriven-aspnetcore
-2. optimizing-ef-core-queries: npx skills add https://github.com/dotnet/skills --skill optimizing-ef-core-queries
-
-# --- 插件 dotnet-test（测试规范/审查,22 个）---
-1. assertion-quality: npx skills add https://github.com/dotnet/skills --skill assertion-quality
-2. code-testing-agent: npx skills add https://github.com/dotnet/skills --skill code-testing-agent
-3. code-testing-extensions: npx skills add https://github.com/dotnet/skills --skill code-testing-extensions
-4. coverage-analysis: npx skills add https://github.com/dotnet/skills --skill coverage-analysis
-5. crap-score: npx skills add https://github.com/dotnet/skills --skill crap-score
-6. detect-static-dependencies: npx skills add https://github.com/dotnet/skills --skill detect-static-dependencies
-7. filter-syntax: npx skills add https://github.com/dotnet/skills --skill filter-syntax
-8. find-untested-sources: npx skills add https://github.com/dotnet/skills --skill find-untested-sources
-9. generate-testability-wrappers: npx skills add https://github.com/dotnet/skills --skill generate-testability-wrappers
-10. grade-tests: npx skills add https://github.com/dotnet/skills --skill grade-tests
-11. migrate-static-to-wrapper: npx skills add https://github.com/dotnet/skills --skill migrate-static-to-wrapper
-12. mtp-hot-reload: npx skills add https://github.com/dotnet/skills --skill mtp-hot-reload
-13. platform-detection: npx skills add https://github.com/dotnet/skills --skill platform-detection
-# 注：run-tests 与 Amplicode/spring-skills 的 run-tests 重名冲突（~/.agents/skills/run-tests 只能存一个），本次保留 spring 版、跳过 dotnet 版；如需 dotnet 版请改名为 run-tests-dotnet 后追加
-14. run-tests: npx skills add https://github.com/dotnet/skills --skill run-tests
-15. scaffold-dotnet-test-project: npx skills add https://github.com/dotnet/skills --skill scaffold-dotnet-test-project
-16. test-analysis-extensions: npx skills add https://github.com/dotnet/skills --skill test-analysis-extensions
-17. test-anti-patterns: npx skills add https://github.com/dotnet/skills --skill test-anti-patterns
-18. test-gap-analysis: npx skills add https://github.com/dotnet/skills --skill test-gap-analysis
-19. test-smell-detection: npx skills add https://github.com/dotnet/skills --skill test-smell-detection
-20. test-tagging: npx skills add https://github.com/dotnet/skills --skill test-tagging
-21. testability-obstacle: npx skills add https://github.com/dotnet/skills --skill testability-obstacle
-22. writing-mstest-tests: npx skills add https://github.com/dotnet/skills --skill writing-mstest-tests
-
-# --- 插件 dotnet-aspnetcore（Web API,4 个）---
-1. configuring-opentelemetry-dotnet: npx skills add https://github.com/dotnet/skills --skill configuring-opentelemetry-dotnet
-2. convert-blazor-server-to-webapp: npx skills add https://github.com/dotnet/skills --skill convert-blazor-server-to-webapp
-3. dotnet-webapi: npx skills add https://github.com/dotnet/skills --skill dotnet-webapi
-4. minimal-api-file-upload: npx skills add https://github.com/dotnet/skills --skill minimal-api-file-upload
+2. create-datadriven-aspnetcore: npx skills add https://github.com/dotnet/skills --skill create-datadriven-aspnetcore
+3. optimizing-ef-core-queries: npx skills add https://github.com/dotnet/skills --skill optimizing-ef-core-queries
+4. assertion-quality: npx skills add https://github.com/dotnet/skills --skill assertion-quality
+5. code-testing-agent: npx skills add https://github.com/dotnet/skills --skill code-testing-agent
+6. code-testing-extensions: npx skills add https://github.com/dotnet/skills --skill code-testing-extensions
+7. coverage-analysis: npx skills add https://github.com/dotnet/skills --skill coverage-analysis
+8. crap-score: npx skills add https://github.com/dotnet/skills --skill crap-score
+9. detect-static-dependencies: npx skills add https://github.com/dotnet/skills --skill detect-static-dependencies
+10. filter-syntax: npx skills add https://github.com/dotnet/skills --skill filter-syntax
+11. find-untested-sources: npx skills add https://github.com/dotnet/skills --skill find-untested-sources
+12. generate-testability-wrappers: npx skills add https://github.com/dotnet/skills --skill generate-testability-wrappers
+13. grade-tests: npx skills add https://github.com/dotnet/skills --skill grade-tests
+14. migrate-static-to-wrapper: npx skills add https://github.com/dotnet/skills --skill migrate-static-to-wrapper
+15. mtp-hot-reload: npx skills add https://github.com/dotnet/skills --skill mtp-hot-reload
+16. platform-detection: npx skills add https://github.com/dotnet/skills --skill platform-detection
+17. run-tests: npx skills add https://github.com/dotnet/skills --skill run-tests
+18. scaffold-dotnet-test-project: npx skills add https://github.com/dotnet/skills --skill scaffold-dotnet-test-project
+19. test-analysis-extensions: npx skills add https://github.com/dotnet/skills --skill test-analysis-extensions
+20. test-anti-patterns: npx skills add https://github.com/dotnet/skills --skill test-anti-patterns
+21. test-gap-analysis: npx skills add https://github.com/dotnet/skills --skill test-gap-analysis
+22. test-smell-detection: npx skills add https://github.com/dotnet/skills --skill test-smell-detection
+23. test-tagging: npx skills add https://github.com/dotnet/skills --skill test-tagging
+24. testability-obstacle: npx skills add https://github.com/dotnet/skills --skill testability-obstacle
+25. writing-mstest-tests: npx skills add https://github.com/dotnet/skills --skill writing-mstest-tests
+26. configuring-opentelemetry-dotnet: npx skills add https://github.com/dotnet/skills --skill configuring-opentelemetry-dotnet
+27. convert-blazor-server-to-webapp: npx skills add https://github.com/dotnet/skills --skill convert-blazor-server-to-webapp
+28. dotnet-webapi: npx skills add https://github.com/dotnet/skills --skill dotnet-webapi
+29. minimal-api-file-upload: npx skills add https://github.com/dotnet/skills --skill minimal-api-file-upload
 
 ## Origin URL: https://github.com/Aaronontheweb/dotnet-skills
 
 Skill Name and install command
 
-# 注：以下技能名为 CLI 实测的 frontmatter 名（2026-08-26），与目录名不同
 1. modern-csharp-coding-standards: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill modern-csharp-coding-standards
 2. api-design: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill api-design
 3. csharp-concurrency-patterns: npx skills add https://github.com/Aaronontheweb/dotnet-skills --skill csharp-concurrency-patterns
